@@ -5,6 +5,11 @@ on:
     tags:
       - "v*.*.*"
 
+
+env:
+  GH_TOKEN:
+    ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
