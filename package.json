@@ -38,8 +38,8 @@
         "win": {
             "icon": "./icons/icon.ico",
             "target": [
-                "nsis",
-                "zip"
+                "msi",
+                "exe"
             ]
         },
         "mac": {
@@ -53,7 +53,8 @@
             "icon": "./icons/icon.png",
             "target": [
                 "AppImage",
-                "deb"
+                "deb",
+                "rpm"
             ],
             "category": "AudioVideo"
         },
