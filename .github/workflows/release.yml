@@ -21,6 +21,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
+    - run: sudo apt-get install bsdtar
     - run: sudo yarn global add electron-builder
     - run: yarn install
     - run: sudo yarn build --linux
