@@ -8,7 +8,7 @@ on:
 
 env:
   GH_TOKEN:
-    ${{ secrets.GITHUB_TOKEN }}
+    ${{ secrets.GH_TOKEN }}
 
 jobs:
   build:
@@ -33,4 +33,4 @@ jobs:
       uses: csexton/release-asset-action@v3
       with:
         pattern: "dist/*"
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GH_TOKEN }}
