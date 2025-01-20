@@ -21,10 +21,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    - run: sudo apt-get install bsdtar
-    - run: sudo yarn global add electron-builder
     - run: yarn install
-    - run: sudo yarn build --linux
+    - run: yarn build --linux
     - run: rm -rf ./dist/*.yml ./dist/*.yaml ./dist/linux-unpacked
     - name: Upload multiple assets to release
       uses: csexton/release-asset-action@v3
