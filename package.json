@@ -53,8 +53,7 @@
             "icon": "./icons/icon.png",
             "target": [
                 "AppImage",
-                "deb",
-                "pacman"
+                "deb"
             ],
             "category": "AudioVideo"
         },
