@@ -29,8 +29,20 @@ jobs:
     - run: yarn install
     - run: yarn build --linux
     - run: rm -rf ./dist/*.yml ./dist/*.yaml ./dist/linux-unpacked
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: ${{ github.ref }}
+        draft: false
+        prerelease: false
     - name: Upload multiple assets to release
       uses: csexton/release-asset-action@v3
       with:
         pattern: "dist/*"
         github-token: ${{ secrets.GH_TOKEN }}
+        release-url: ${{ steps.create_release.outputs.upload_url }}
