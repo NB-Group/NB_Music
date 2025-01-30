@@ -22,6 +22,7 @@
         "globals": "^15.14.0"
     },
     "dependencies": {
+        "@mdui/icons": "^1.0.2",
         "NeteaseCloudMusicApi": "^4.25.0",
         "axios": "^1.7.9",
         "electron-reload": "^2.0.0-alpha.1",

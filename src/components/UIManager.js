@@ -96,11 +96,6 @@ class UIManager {
     }
 
     initializeEvents() {
-        window.addEventListener("keydown", (e) => {
-            if (e.key == "F12") {
-                ipcRenderer.send("open-dev-tools");
-            }
-        });
         // 窗口控制按钮
         document.getElementById("minimize").addEventListener("click", () => {
             ipcRenderer.send("window-minimize");

@@ -6,6 +6,13 @@ const UIManager = require("./components/UIManager.js");
 const PlaylistManager = require("./components/PlaylistManager.js");
 const FavoriteManager = require("./components/FavoriteManager.js");
 const MusicSearcher = require("./components/MusicSearcher.js");
+const {ipcRenderer} = require("electron")
+
+window.addEventListener("keydown", (e) => {
+    if (e.key == "F12") {
+        ipcRenderer.send("open-dev-tools");
+    }
+});
 
 class App {
     constructor() {

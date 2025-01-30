@@ -1,22 +1,30 @@
-/* 基础重置 */
 * {
-    margin: 0;
-    padding: 0;
+    user-select: none;
     box-sizing: border-box;
 }
-
+html {
+    height: 100%;
+}
 body {
-    height: 100vh;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+}
+
+.title-bar {
+    position: static;
+    display: flex;
+    align-items: center;
 }
 
 /* 主布局 */
-mdui-layout {
+.container {
     display: flex;
-    height: calc(100vh - 64px); /* 减去顶部应用栏高度 */
-    margin-top: 64px; /* 顶部应用栏高度 */
+    height: 100%;
+    /* height: calc(100% - 64px); 减去顶部应用栏高度 */
 }
 
 /* 顶部应用栏固定定位 */
@@ -26,53 +34,84 @@ mdui-top-app-bar {
     left: 0;
     right: 0;
     z-index: 1000;
+    -webkit-app-region: drag;
+}
+mdui-button-icon {
+    -webkit-app-region: no-drag;
+}
+mdui-navigation-rail {
+    position: static !important;
+    z-index: 114514;
 }
 
-/* 左侧边栏 */
-mdui-navigation-drawer {
-    width: 256px;
-    height: 100%;
-    flex-shrink: 0;
-    border-right: 1px solid var(--mdui-color-outline-variant);
-    overflow-y: auto;
+.navigation {
+    position: relative;
 }
 
-/* 右侧主内容区域容器 */
-.right-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+.right-container {
+    position: relative;
     overflow: hidden;
+}
+
+
+#playing-list img {
+    height: 90px;
+    border-radius: 14px;
+}
+
+.mode {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 114514;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: min-content auto;
     height: 100%;
-}
-
-/* 搜索框区域 */
-.search {
-    padding: 16px;
-    border-bottom: 1px solid var(--mdui-color-outline-variant);
-}
-
-.search mdui-text-field {
     width: 100%;
 }
 
-/* 主内容区域 */
+.cover {
+    width: 70%;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+
+    & > .cover-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
 .content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    margin-top: 13px;
 }
 
-/* 滚动条美化 */
-::-webkit-scrollbar {
-    width: 6px;
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin-top: 7px;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+.player-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-direction: column;
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--mdui-color-outline-variant);
-    border-radius: 3px;
+.controls {
+    width: 100%;
 }

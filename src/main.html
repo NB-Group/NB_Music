@@ -7,176 +7,158 @@
         <title>NB Music</title>
         <link rel="stylesheet" href="./style.css" />
         <link rel="stylesheet" href="../assets/mdui.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
     </head>
 
     <body>
         <!-- 顶部应用栏 -->
-        <mdui-top-app-bar>
-            <img src="../icons/NB Music.png" style="height: 32px" slot="title" />
-            <span slot="title">NB Music</span>
-            <mdui-button-icon id="minimize" slot="end">
-                <mdui-icon>remove</mdui-icon>
-            </mdui-button-icon>
-            <mdui-button-icon id="maximize" slot="end">
-                <mdui-icon>crop_square</mdui-icon>
-            </mdui-button-icon>
-            <mdui-button-icon id="close" slot="end">
-                <mdui-icon>close</mdui-icon>
-            </mdui-button-icon>
+        <mdui-top-app-bar class="title-bar">
+            <img src="../icons/NB Music.png" style="height: 32px" />
+            <mdui-top-app-bar-title>NB Music</mdui-top-app-bar-title>
+            <div>
+                <mdui-button-icon icon="remove--rounded"> </mdui-button-icon>
+                <mdui-button-icon id="maximize" slot="end" icon="crop_square--rounded"> </mdui-button-icon>
+                <mdui-button-icon id="close" slot="end" icon="close--rounded"> </mdui-button-icon>
+            </div>
         </mdui-top-app-bar>
-
-        <!-- 加载动画 -->
-        <mdui-linear-progress style="display: none" indeterminate></mdui-linear-progress>
-
         <!-- 主要内容区 -->
-        <mdui-layout>
+        <div class="container">
             <!-- 主题切换按钮 -->
-            <mdui-fab variant="primary" icon="brightness_4"></mdui-fab>
-
+            <mdui-fab variant="primary" icon="wb_sunny--rounded" class="mode"></mdui-fab>
             <!-- 侧边栏 -->
-            <mdui-navigation-drawer>
-                <mdui-list>
-                    <mdui-list-item class="player" data-page=".player">
-                        <mdui-icon slot="icon">play_circle_outline</mdui-icon>
-                        播放
-                    </mdui-list-item>
-                    <mdui-list-item class="love-list" data-page=".love-list">
-                        <mdui-icon slot="icon">favorite</mdui-icon>
-                        收藏
-                    </mdui-list-item>
-                    <mdui-list-item class="music-list" data-page=".music-list">
-                        <mdui-icon slot="icon">queue_music</mdui-icon>
-                        歌单
-                    </mdui-list-item>
-                    <mdui-list-item class="setting" data-page=".setting">
-                        <mdui-icon slot="icon">settings</mdui-icon>
-                        设置
-                    </mdui-list-item>
-                </mdui-list>
-
-                <!-- 播放列表 -->
-                <mdui-expansion-panel>
+            <mdui-navigation-rail>
+                <mdui-fab variant="primary" icon="menu--rounded" onclick="document.querySelector('#playing-list-container').open = !document.querySelector('#playing-list-container').open;"></mdui-fab>
+                <mdui-navigation-rail-item class="player" data-page=".player" icon="play_circle_outline--rounded">播放</mdui-navigation-rail-item>
+                <mdui-navigation-rail-item class="love-list" data-page=".love-list" icon="favorite--rounded">收藏</mdui-navigation-rail-item>
+                <mdui-navigation-rail-item class="music-list" data-page=".music-list" icon="queue_music--rounded">歌单</mdui-navigation-rail-item>
+                <mdui-navigation-rail-item class="setting" data-page=".setting" icon="settings--rounded">设置</mdui-navigation-rail-item>
+            </mdui-navigation-rail>
+            <!-- 播放列表 -->
+            <div class="right-container">
+                <mdui-navigation-drawer id="playing-list-container" modal close-on-esc close-on-overlay-click contained>
+                    <mdui-list>
+                        <mdui-list-subheader>默认歌单</mdui-list-subheader>
+                    </mdui-list>
                     <div slot="header">
                         <span id="listname">默认歌单</span>
                         <div slot="actions">
-                            <mdui-button-icon class="rename">
-                                <mdui-icon>edit</mdui-icon>
-                            </mdui-button-icon>
-                            <mdui-button-icon class="add">
-                                <mdui-icon>add</mdui-icon>
-                            </mdui-button-icon>
+                            <mdui-button-icon class="rename" icon="edit--rounded"> </mdui-button-icon>
+                            <mdui-button-icon class="add" icon="add--rounded"> </mdui-button-icon>
                         </div>
                     </div>
                     <mdui-list id="playing-list">
                         <!-- 歌曲项模板 -->
-                        <mdui-list-item>
-                            <mdui-avatar slot="icon">
-                                <img class="poster" />
-                            </mdui-avatar>
-                            <div slot="headline" class="name"></div>
-                            <div slot="description" class="artist"></div>
-                            <div slot="end">
-                                <mdui-button-icon class="love" onclick="love_song(id,event)">
-                                    <mdui-icon>favorite_border</mdui-icon>
-                                </mdui-button-icon>
-                                <mdui-button-icon class="delete" onclick="delete_song(id,event)">
-                                    <mdui-icon>delete</mdui-icon>
-                                </mdui-button-icon>
+                        <mdui-list-item rounded>
+                            a
+                            <img slot="icon" class="poster" src="../img/NB_Music.png" />
+                            <div slot="end-icon">
+                                <mdui-button-icon class="love" onclick="love_song(id,event)" icon="favorite_border--rounded"> </mdui-button-icon>
+                                <mdui-button-icon class="delete" onclick="delete_song(id,event)" icon="delete--rounded"> </mdui-button-icon>
+                            </div>
+                        </mdui-list-item>
+                        <mdui-list-item rounded>
+                            a
+                            <img slot="icon" class="poster" src="../img/NB_Music.png" />
+                            <div slot="end-icon">
+                                <mdui-button-icon class="love" onclick="love_song(id,event)" icon="favorite_border--rounded"> </mdui-button-icon>
+                                <mdui-button-icon class="delete" onclick="delete_song(id,event)" icon="delete--rounded"> </mdui-button-icon>
+                            </div>
+                        </mdui-list-item>
+                        <mdui-list-item rounded>
+                            a
+                            <img slot="icon" class="poster" src="../img/NB_Music.png" />
+                            <div slot="end-icon">
+                                <mdui-button-icon class="love" onclick="love_song(id,event)" icon="favorite_border--rounded"> </mdui-button-icon>
+                                <mdui-button-icon class="delete" onclick="delete_song(id,event)" icon="delete--rounded"> </mdui-button-icon>
                             </div>
                         </mdui-list-item>
                     </mdui-list>
-                </mdui-expansion-panel>
-            </mdui-navigation-drawer>
-
-            <div class="right-content">
-                <!-- 搜索框 -->
-                <div class="search">
-                    <mdui-text-field class="search-music" variant="outlined" label="搜索音乐"> </mdui-text-field>
-                </div>
-
-                <!-- 主要内容 -->
-                <div class="content">
-                    <!-- 播放器等其他内容 -->
-                </div>
-                <!-- 内容区域 -->
-                <div class="content">
-                    <!-- 播放器 -->
-                    <mdui-card class="player">
-                        <img class="cover-img" src="./img/NB_Music.png" slot="media" />
-                        <div slot="title" class="title">歌曲名</div>
-                        <div slot="subtitle" class="artist">歌手</div>
-                        <div slot="content">
-                            <mdui-slider id="progress"></mdui-slider>
-                            <div style="display: flex; justify-content: center; gap: 8px">
-                                <mdui-button-icon class="prev" data-action="prev">
-                                    <mdui-icon>skip_previous</mdui-icon>
-                                </mdui-button-icon>
-                                <mdui-button-icon class="play played" data-action="play">
-                                    <mdui-icon>play_arrow</mdui-icon>
-                                </mdui-button-icon>
-                                <mdui-button-icon class="next" data-action="next">
-                                    <mdui-icon>skip_next</mdui-icon>
-                                </mdui-button-icon>
+                </mdui-navigation-drawer>
+                <div class="main">
+                    <!-- 搜索框 -->
+                    <div class="search">
+                        <mdui-text-field variant="outlined" label="搜索音乐" clearable>
+                            <mdui-button-icon slot="icon" icon="search--rounded"></mdui-button-icon>
+                        </mdui-text-field>
+                    </div>
+                    <!-- 内容区域 -->
+                    <div class="content">
+                        <!-- 播放器 -->
+                        <mdui-card class="player">
+                            <div class="player-container">
+                                <div class="cover">
+                                    <img class="cover-img" src="../img/NB_Music.png" />
+                                </div>
+                                <div class="info">
+                                    <div class="title">歌曲名</div>
+                                    <div class="artist">歌手</div>
+                                </div>
+                                <div class="controls">
+                                    <mdui-slider id="progress" nolabel style="width: 100%;"></mdui-slider>
+                                    <div style="display: flex; justify-content: center; gap: 8px">
+                                        <mdui-button-icon class="prev" data-action="prev" icon="skip_previous--rounded"> </mdui-button-icon>
+                                        <mdui-button-icon class="play played" data-action="play" icon="play_arrow--rounded"> </mdui-button-icon>
+                                        <mdui-button-icon class="next" data-action="next" icon="skip_next--rounded"> </mdui-button-icon>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </mdui-card>
-
-                    <!-- 歌词显示 -->
-                    <div id="lyrics-container">
-                        <mdui-typography variant="body1" align="center">无歌词</mdui-typography>
-                    </div>
-
-                    <!-- 收藏列表 -->
-                    <div class="love-list" style="display: none">
-                        <mdui-typography variant="headline">收藏</mdui-typography>
-                        <mdui-list id="lovelist"></mdui-list>
-                    </div>
-
-                    <!-- 音乐列表 -->
-                    <div class="music-list" style="display: none">
-                        <mdui-card>
-                            <img src="../img/NB_Music.png" slot="media" />
-                            <div slot="title">歌单名</div>
-                            <div slot="actions">
-                                <mdui-button variant="filled">播放全部</mdui-button>
+                            <!-- 歌词显示 -->
+                            <div id="lyrics-container">
+                                <div class="lyrics">无歌词</div>
                             </div>
                         </mdui-card>
-                        <mdui-text-field class="search-music-in-list" variant="outlined" placeholder="搜索音乐" icon="search"> </mdui-text-field>
-                    </div>
 
-                    <!-- 搜索结果 -->
-                    <div class="search-result" style="display: none">
-                        <mdui-typography variant="headline">搜索结果</mdui-typography>
-                        <mdui-list class="search">
-                            <mdui-list-item>
-                                <mdui-avatar slot="icon">
-                                    <img class="poster" src="./img/NB_Music.png" />
-                                </mdui-avatar>
-                                <div slot="headline">NB</div>
-                                <div slot="description">NB</div>
-                                <div slot="end">
-                                    <mdui-button-icon class="love" onclick="love()">
-                                        <mdui-icon>favorite_border</mdui-icon>
-                                    </mdui-button-icon>
-                                    <mdui-button-icon class="play" onclick="play()">
-                                        <mdui-icon>play_circle_outline</mdui-icon>
-                                    </mdui-button-icon>
-                                    <mdui-button-icon class="add2list" onclick="add2list()">
-                                        <mdui-icon>playlist_add</mdui-icon>
-                                    </mdui-button-icon>
+                        <!-- 收藏列表 -->
+                        <div class="love-list" style="display: none">
+                            <mdui-list id="lovelist"></mdui-list>
+                        </div>
+
+                        <!-- 音乐列表 -->
+                        <div class="music-list" style="display: none">
+                            <mdui-card>
+                                <img src="../img/NB_Music.png" slot="media" />
+                                <div slot="title">歌单名</div>
+                                <div slot="actions">
+                                    <mdui-button variant="filled">播放全部</mdui-button>
                                 </div>
-                            </mdui-list-item>
-                        </mdui-list>
-                    </div>
+                            </mdui-card>
+                            <mdui-text-field class="search-music-in-list" variant="outlined" placeholder="搜索音乐" icon="search"> </mdui-text-field>
+                        </div>
 
-                    <!-- 设置页面 -->
-                    <div class="setting" style="display: none">
-                        <mdui-typography variant="headline">设置</mdui-typography>
-                        <div class="setting-content"></div>
+                        <!-- 搜索结果 -->
+                        <div class="search-result" style="display: none">
+                            <mdui-typography variant="headline">搜索结果</mdui-typography>
+                            <mdui-list class="search">
+                                <mdui-list-item>
+                                    <mdui-avatar slot="icon">
+                                        <img class="poster" src="./img/NB_Music.png" />
+                                    </mdui-avatar>
+                                    <div slot="headline">NB</div>
+                                    <div slot="description">NB</div>
+                                    <div slot="end">
+                                        <mdui-button-icon class="love" onclick="love()">
+                                            <mdui-icon>favorite_border</mdui-icon>
+                                        </mdui-button-icon>
+                                        <mdui-button-icon class="play" onclick="play()">
+                                            <mdui-icon>play_circle_outline</mdui-icon>
+                                        </mdui-button-icon>
+                                        <mdui-button-icon class="add2list" onclick="add2list()">
+                                            <mdui-icon>playlist_add</mdui-icon>
+                                        </mdui-button-icon>
+                                    </div>
+                                </mdui-list-item>
+                            </mdui-list>
+                        </div>
+
+                        <!-- 设置页面 -->
+                        <div class="setting" style="display: none">
+                            <mdui-typography variant="headline">设置</mdui-typography>
+                            <div class="setting-content"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </mdui-layout>
+        </div>
     </body>
     <script src="./script.js"></script>
     <script src="../assets/mdui.js"></script>
