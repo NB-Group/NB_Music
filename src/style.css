@@ -53,10 +53,20 @@ mdui-navigation-rail {
     overflow: hidden;
 }
 
-
 #playing-list img {
     height: 90px;
     border-radius: 14px;
+}
+
+#playing-list-container {
+    --mdui-color-surface-container-low: transparent;
+
+    mdui-list {
+        height: 100%;
+        backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
+        -webkit-backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
+        background: transparent;
+    }
 }
 
 .mode {

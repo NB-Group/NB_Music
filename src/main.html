@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-cn" class="mdui-theme-dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="referrer" content="no-referrer" />
@@ -36,17 +36,15 @@
             <!-- 播放列表 -->
             <div class="right-container">
                 <mdui-navigation-drawer id="playing-list-container" modal close-on-esc close-on-overlay-click contained>
-                    <mdui-list>
-                        <mdui-list-subheader>默认歌单</mdui-list-subheader>
-                    </mdui-list>
-                    <div slot="header">
-                        <span id="listname">默认歌单</span>
-                        <div slot="actions">
+                    <mdui-list id="playing-list">
+                        <mdui-list-subheader style="display: flex; align-items: center">
+                            <span id="listname">默认歌单</span>
+                            <div style="height: 100%; padding: 0 20px">
+                                <mdui-divider vertical></mdui-divider>
+                            </div>
                             <mdui-button-icon class="rename" icon="edit--rounded"> </mdui-button-icon>
                             <mdui-button-icon class="add" icon="add--rounded"> </mdui-button-icon>
-                        </div>
-                    </div>
-                    <mdui-list id="playing-list">
+                        </mdui-list-subheader>
                         <!-- 歌曲项模板 -->
                         <mdui-list-item rounded>
                             a
@@ -94,7 +92,7 @@
                                     <div class="artist">歌手</div>
                                 </div>
                                 <div class="controls">
-                                    <mdui-slider id="progress" nolabel style="width: 100%;"></mdui-slider>
+                                    <mdui-slider id="progress" nolabel style="width: 100%"></mdui-slider>
                                     <div style="display: flex; justify-content: center; gap: 8px">
                                         <mdui-button-icon class="prev" data-action="prev" icon="skip_previous--rounded"> </mdui-button-icon>
                                         <mdui-button-icon class="play played" data-action="play" icon="play_arrow--rounded"> </mdui-button-icon>
@@ -151,7 +149,7 @@
                         </div>
 
                         <!-- 设置页面 -->
-                        <div class="setting" style="display: none">
+                        <div class="setting" >
                             <mdui-typography variant="headline">设置</mdui-typography>
                             <div class="setting-content"></div>
                         </div>
