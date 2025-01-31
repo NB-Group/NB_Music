@@ -35,6 +35,7 @@ mdui-top-app-bar {
     right: 0;
     z-index: 1000;
     -webkit-app-region: drag;
+    height: 56px;
 }
 mdui-button-icon {
     -webkit-app-region: no-drag;
@@ -81,10 +82,11 @@ mdui-navigation-rail {
     grid-template-columns: min-content auto;
     height: 100%;
     width: 100%;
+    padding-right: 10px;
 }
 
 .cover {
-    width: 70%;
+    width: 50%;
     aspect-ratio: 1 / 1;
     border-radius: 16px;
     overflow: hidden;
@@ -100,16 +102,21 @@ mdui-navigation-rail {
 .content {
     width: 100%;
     height: 100%;
-    display: grid;
-    grid-template-columns: 50% 50%;
-    margin-top: 13px;
+    padding-top: 13px;
+}
+
+.content > .player {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 10px;
 }
 
 .main {
     display: flex;
     flex-direction: column;
     height: 100%;
-    margin-top: 7px;
+    padding: 7px 0;
 }
 
 .player-container {
@@ -123,5 +130,9 @@ mdui-navigation-rail {
 }
 
 .controls {
+    width: 50%;
+}
+
+#lyrics-container {
     width: 100%;
 }
