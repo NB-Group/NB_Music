@@ -17,17 +17,20 @@ class UIManager {
 
     initializePlayerControls() {
         // 进度条控制
-        const progressBar = document.querySelector(".progress-bar");
-        progressBar?.addEventListener("click", (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
+        const progressBar = document.querySelector("input[type='range']");
+        progressBar?.addEventListener("input", (e) => {
+            const percent = e.target.value / 100;
             this.audioPlayer.audio.currentTime = percent * this.audioPlayer.audio.duration;
+            document.querySelector(".track-active").style.width = `${e.target.value}%`;
+            document.querySelector(".handle").style.left = `${e.target.value}%`;
         });
 
         // 播放时更新进度条
         this.audioPlayer.audio.addEventListener("timeupdate", () => {
             const progress = (this.audioPlayer.audio.currentTime / this.audioPlayer.audio.duration) * 100;
-            document.querySelector(".progress-bar-inner").style.width = `${progress}%`;
+            progressBar.value = progress;
+            document.querySelector(".track-active").style.width = `${progress}%`;
+            document.querySelector(".handle").style.left = `${progress}%`;
         });
 
         // 播放控制按钮（使用事件委托）
@@ -52,11 +55,11 @@ class UIManager {
 
         // 播放状态图标更新
         this.audioPlayer.audio.addEventListener("play", () => {
-            document.querySelector(".control>.buttons>.play").classList = "play played";
+            document.querySelector("mdui-button-icon .play").classList = "play played";
         });
 
         this.audioPlayer.audio.addEventListener("pause", () => {
-            document.querySelector(".control>.buttons>.play").classList = "play paused";
+            document.querySelector("mdui-button-icon .play").classList = "play paused";
         });
     }
 
@@ -109,102 +112,52 @@ class UIManager {
             ipcRenderer.send("window-close");
         });
 
-        ipcRenderer.on("window-state-changed", (event, maximized) => {
-            this.isMaximized = maximized;
-            if (this.isMaximized) {
-                this.minimizeBtn.innerHTML = `<svg version="1.1" width="12" height="12" viewBox="0,0,37.65105,35.84556" style="margin-top:1px;"><g transform="translate(-221.17804,-161.33903)"><g style="stroke:var(--text);" data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill="none" fill-rule="nonzero" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"><path d="M224.68734,195.6846c-2.07955,-2.10903 -2.00902,-6.3576 -2.00902,-6.3576l0,-13.72831c0,0 -0.23986,-1.64534 2.00902,-4.69202c1.97975,-2.68208 4.91067,-2.00902 4.91067,-2.00902h14.06315c0,0 3.77086,-0.23314 5.80411,1.67418c2.03325,1.90732 1.33935,5.02685 1.33935,5.02685v13.39347c0,0 0.74377,4.01543 -1.33935,6.3576c-2.08312,2.34217 -5.80411,1.67418 -5.80411,1.67418h-13.39347c0,0 -3.50079,0.76968 -5.58035,-1.33935z"></path><path d="M229.7952,162.85325h16.06111c0,0 5.96092,-0.36854 9.17505,2.64653c3.21412,3.01506 2.11723,7.94638 2.11723,7.94638v18.55642"></path></g></g></svg>`;
-            } else {
-                this.minimizeBtn.innerHTML = '<i class="bi bi-app"></i>';
-            }
-        });
+        // ipcRenderer.on("window-state-changed", (event, maximized) => {
+        //     this.isMaximized = maximized;
+        //     if (this.isMaximized) {
+        //         this.minimizeBtn.icon = "filter_none"
+        //     } else {
+        //         this.minimizeBtn.innerHTML = 'crop_square--rounded';
+        //     }
+        // });
 
-        // 音频进度条
+        const progressSlider = document.querySelector("#progress");
+
         this.audioPlayer.audio.addEventListener("timeupdate", () => {
             const progress = (this.audioPlayer.audio.currentTime / this.audioPlayer.audio.duration) * 100;
-            document.querySelector(".player .control .progress .progress-bar .progress-bar-inner").style.width = progress + "%";
+            progressSlider.value = progress;
         });
 
-        // 进度条点击
-        document.querySelector(".player .control .progress .progress-bar").addEventListener("click", (event) => {
-            const progressBar = event.currentTarget;
-            const clickPosition = event.offsetX;
-            const progressBarWidth = progressBar.offsetWidth;
-            const progress = (clickPosition / progressBarWidth) * this.audioPlayer.audio.duration;
-            this.audioPlayer.audio.currentTime = progress;
+        // 进度条变化监听
+        progressSlider.addEventListener("input", (event) => {
+            const progress = event.target.value;
+            const audioTime = (progress / 100) * this.audioPlayer.audio.duration;
+            this.audioPlayer.audio.currentTime = audioTime;
         });
 
-        // 侧边栏点击事件
-        document.addEventListener("click", (event) => {
-            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar")) {
-                document.querySelector(".sidebar").classList.add("hide");
-            }
-        });
+        const searchField = document.querySelector("mdui-text-field");
+        const searchButton = document.querySelector("mdui-button-icon[icon='search--rounded']");
 
-        document.querySelector(".sidebar").addEventListener("mouseover", () => {
-            document.querySelector(".sidebar").classList.remove("hide");
-        });
-
-        // 列表焦点效果
-        document.querySelectorAll("#function-list").forEach((list) => {
-            list.addEventListener("click", (e) => {
-                const clickedItem = e.target.closest("a");
-                if (!clickedItem) return;
-
-                const spanFocs = list.querySelector("span.focs");
-                if (!spanFocs) return;
-
-                // 移除之前的所有选中状态
-                list.querySelectorAll("a").forEach((a) => a.classList.remove("check"));
-                // 添加新的选中状态
-                clickedItem.classList.add("check");
-
-                // 显示焦点指示器
-                spanFocs.style.display = "block";
-                spanFocs.classList.add("moving");
-
-                // 设置位置 - 不再使用 transform，直接设置 top
-                if (spanFocs.dataset.type === "abs") {
-                    spanFocs.style.top = clickedItem.offsetTop + 10 + "px";
-                } else {
-                    spanFocs.style.top = clickedItem.offsetTop + 10 + "px";
-                    spanFocs.style.left = clickedItem.offsetLeft + 10 + "px";
-                }
-
-                setTimeout(() => {
-                    spanFocs.classList.remove("moving");
-                }, 300);
-            });
-        });
-
-        // 搜索输入框事件
-        document.querySelector(".search input").addEventListener("keypress", (event) => {
+        searchField.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                this.handleSearch(event);
+                this.handleSearch(searchField.value);
             }
         });
 
-        // 主题切换事件
-        document.querySelector(".dock.theme").addEventListener("click", () => {
-            this.toggleTheme();
+        searchButton.addEventListener("click", () => {
+            this.handleSearch(searchField.value);
         });
     }
 
-    async handleSearch() {
-        const keyword = document.querySelector(".search input").value;
-        if (!keyword) return;
+    async handleSearch(keyword) {
+        if (!keyword) {
+            keyword = document.querySelector("mdui-text-field").value;
+        }
+
+        if (!keyword.trim()) return;
         this.musicSearcher.searchMusic(keyword);
     }
 
-    toggleTheme() {
-        document.querySelector(".dock.theme").classList.toggle("dk");
-        document.documentElement.classList.toggle("dark");
-
-        if (document.documentElement.classList.contains("dark")) {
-            localStorage.setItem("theme", "dark");
-        } else {
-            localStorage.setItem("theme", "light");
-        }
-    }
     renderPlaylist() {
         document.querySelector("#listname").textContent = this.playlistManager.playlistName;
         const playlistElement = document.querySelector("#playing-list");
@@ -223,7 +176,7 @@ class UIManager {
                 if (!loveBtn && !deleteBtn) {
                     const index = this.playlistManager.playlist.findIndex((item) => item.bvid === song.bvid);
                     this.playlistManager.setPlayingNow(index, e);
-                    document.querySelector("#function-list .player").click();
+                    document.querySelector(".player").click();
                 }
                 let songIndex = this.playlistManager.playlist.findIndex((item) => item.bvid === song.bvid);
                 if (loveBtn) {
@@ -244,38 +197,47 @@ class UIManager {
         });
     }
     createSongElement(song, bvid, { isLove = true, isDelete = true, isExtract = false } = {}) {
-        const div = document.createElement("div");
-        div.classList.add("song");
-        div.setAttribute("data-bvid", bvid);
-
         const isLoved = window.app.favoriteManager.lovelist.some((item) => item.bvid === song.bvid);
-
-        div.innerHTML = `
-            <img class="poster" alt="Poster image">
-            <div class="info">
-                <div class="name"></div>
-                <div class="artist"></div>
-            </div>
-            <div class="controls">
-                ${
-                    isLove
-                        ? `<div class="love">
-                    <i class="bi bi-heart${isLoved ? "-fill" : ""} ${isLoved ? "loved" : ""}"></i>
-                </div>`
-                        : ""
-                }
-                ${
-                    isDelete
-                        ? `<div class="delete">
-                    <i class="bi bi-trash"></i>
-                </div>`
-                        : ""
-                }
-            </div>`;
-        div.querySelector(".poster").src = song.poster;
-        div.querySelector(".name").textContent = isExtract ? extractMusicTitle(song.title) : song.title;
-        div.querySelector(".artist").textContent = song.artist;
-        return div;
+        
+        // 创建mdui-list-item元素
+        const listItem = document.createElement("mdui-list-item");
+        listItem.setAttribute("rounded", "");
+        listItem.setAttribute("data-bvid", bvid);
+        
+        // 设置主标题内容
+        listItem.textContent = isExtract ? extractMusicTitle(song.title) : song.title;
+    
+        // 添加封面图片
+        const img = document.createElement("img");
+        img.setAttribute("slot", "icon");
+        img.classList.add("poster"); 
+        img.src = song.poster;
+        img.alt = "Poster image";
+        listItem.appendChild(img);
+    
+        // 创建控制按钮容器
+        const controls = document.createElement("div");
+        controls.setAttribute("slot", "end-icon");
+    
+        // 添加收藏按钮
+        if (isLove) {
+            const loveBtn = document.createElement("mdui-button-icon");
+            loveBtn.classList.add("love");
+            loveBtn.setAttribute("icon", isLoved ? "favorite--rounded" : "favorite_border--rounded");
+            controls.appendChild(loveBtn);
+        }
+    
+        // 添加删除按钮 
+        if (isDelete) {
+            const deleteBtn = document.createElement("mdui-button-icon");
+            deleteBtn.classList.add("delete");
+            deleteBtn.setAttribute("icon", "delete--rounded");
+            controls.appendChild(deleteBtn);
+        }
+    
+        listItem.appendChild(controls);
+    
+        return listItem;
     }
 }
 

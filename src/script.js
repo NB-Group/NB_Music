@@ -78,19 +78,11 @@ class App {
 
     setupInitialUI() {
         try {
-            // 隐藏加载动画
-            setTimeout(() => {
-                document.querySelector(".loading").style.opacity = "0";
-            }, 1000);
-            setTimeout(() => {
-                document.querySelector(".loading").style.display = "none";
-            }, 2000);
-
             // 渲染播放列表
             this.uiManager.renderPlaylist();
 
             // 打开播放器界面
-            document.querySelector("#function-list .player").click();
+            document.querySelector(".player").click();
 
             // 设置默认播放
             if (this.playlistManager.playlist.length > 0) {

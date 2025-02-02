@@ -22,7 +22,7 @@ class PlaylistManager {
             this.savePlaylists();
 
             // 创建并添加新的歌曲元素
-            const songElement = this.createSongElement(song);
+            const songElement = this.uiManager.createSongElement(song);
             songElement.classList.add('adding'); // 添加动画初始类
 
             const playingList = document.querySelector("#playing-list");
@@ -52,7 +52,7 @@ class PlaylistManager {
             if (event) {
                 event.stopPropagation();
             }
-            const songElement = document.querySelector(`#playing-list .song[data-bvid="${bvid}"]`);
+            const songElement = document.querySelector(`#playing-list [data-bvid="${bvid}"]`);
             if (!songElement) return;
 
             // 添加删除动画
@@ -71,71 +71,58 @@ class PlaylistManager {
                         this.playingNow--;
                     }
                 }
+                this.uiManager.renderPlaylist();
             }, { once: true });
         } catch (error) {
             console.error("删除歌曲失败:", error);
         }
     }
 
-    async setPlayingNow(index, replay = true) {
+     async setPlayingNow(index, replay = true) {
         try {
             if (index < 0 || index >= this.playlist.length) {
                 throw new Error("无效的播放索引");
             }
-
+    
             const song = this.playlist[index];
             this.playingNow = index;
-
-            // 更新歌词和UI
+    
+            // 更新歌词和UI 
             this.lyricsPlayer.changeLyrics(song.lyric);
-
+    
             // 添加切换动画
-            const oldPlayingElement = document.querySelector("#playing-list .song.playing");
-            const newPlayingElement = document.querySelector(`#playing-list .song[data-bvid="${song.bvid}"]`);
-
+            const oldPlayingElement = document.querySelector("mdui-list-item.playing");
+            const newPlayingElement = document.querySelector(`mdui-list-item[data-bvid="${song.bvid}"]`);
+    
             if (oldPlayingElement) {
-                // 为旧的播放项添加淡出动画
                 oldPlayingElement.style.transition = 'all 0.3s ease';
                 oldPlayingElement.classList.remove("playing");
-                oldPlayingElement.classList.add("fade-out");
             }
-
+    
             if (newPlayingElement) {
-                // 为新的播放项添加动画
                 newPlayingElement.classList.add("playing");
-                newPlayingElement.classList.add("flash");
-
-                // 平滑滚动到新的播放项
                 newPlayingElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
                 });
-
-                setTimeout(() => {
-                    newPlayingElement.classList.remove("flash");
-                }, 800);
             }
-
+    
             // 添加封面切换动画
-            const coverImg = document.querySelector(".player-content .cover .cover-img");
+            const coverImg = document.querySelector(".cover .cover-img");
             coverImg.style.transition = 'opacity 0.3s ease';
             coverImg.style.opacity = '0';
-
+    
             setTimeout(() => {
                 this.updateUIForCurrentSong(song);
                 coverImg.style.opacity = '1';
             }, 300);
-
+    
             if (replay) {
-                const progressBar = document.querySelector(".player .control .progress .progress-bar .progress-bar-inner");
-                progressBar.style.transition = "none";
-                progressBar.style.width = "0%";
-                setTimeout(() => {
-                    progressBar.style.transition = "width 0.1s linear";
-                }, 50);
+                const progressSlider = document.querySelector("#progress");
+                progressSlider.value = 0;
                 this.audioPlayer.audio.currentTime = 0;
             }
-
+    
             // 更新媒体会话
             if ('mediaSession' in navigator) {
                 const { url, size } = await cropImageToSquare(song.poster);
@@ -145,10 +132,10 @@ class PlaylistManager {
                     artwork: [{ src: url, sizes: size, type: 'image/jpeg' }]
                 });
             }
-
+    
             await this.tryPlayWithRetry(song);
             this.savePlaylists();
-
+    
         } catch (error) {
             console.error("设置当前播放失败:", error);
         }
@@ -162,7 +149,7 @@ class PlaylistManager {
 
                 // 尝试播放
                 await this.audioPlayer.audio.play();
-                document.querySelector(".control>.buttons>.play").classList = "play played";
+                document.querySelector("mdui-button-icon .play").classList = "play played";
                 return; // 成功播放，退出重试
             } catch (error) {
                 console.error(`播放尝试 ${attempt + 1} 失败:`, error);
@@ -190,11 +177,11 @@ class PlaylistManager {
                         // 最后一次尝试播放
                         this.audioPlayer.audio.src = newUrl;
                         await this.audioPlayer.audio.play();
-                        document.querySelector(".control>.buttons>.play").classList = "play paused";
+                        document.querySelector("mdui-button-icon .play").classList = "play paused";
                         return;
                     } catch (finalError) {
                         console.error("重新获取音频链接失败:", finalError);
-                        document.querySelector(".control>.buttons>.play").classList = "play paused";
+                        document.querySelector("mdui-button-icon .play").classList = "play paused";
                         throw finalError;
                     }
                 }
@@ -206,7 +193,7 @@ class PlaylistManager {
     }
     updateUIForCurrentSong(song) {
         document.documentElement.style.setProperty("--bgul", "url(" + song.poster + ")");
-        document.querySelector(".player-content .cover .cover-img").src = song.poster;
+        document.querySelector(".cover .cover-img").src = song.poster;
         document.querySelector(".player .info .title").textContent = song.title;
         document.querySelector(".player .info .artist").textContent = song.artist;
     }

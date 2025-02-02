@@ -113,12 +113,12 @@ class FavoriteManager {
                     //如果在播放列表中找到了这首歌
                     if (playlist.some((item) => item.bvid === song.bvid)) {
                         this.playlistManager.setPlayingNow(playlist.findIndex((item) => item.bvid === song.bvid));
-                        document.querySelector("#function-list .player").click();
+                        document.querySelector(".love-list").click();
                     } else {
                         this.playlistManager.addSong(song);
                         this.playlistManager.setPlayingNow(playlist.length - 1, false);
                         this.uiManager.renderPlaylist();
-                        document.querySelector("#function-list .player").click();
+                        document.querySelector(".love-list").click();
                     }
                 }
             });

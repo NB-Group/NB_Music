@@ -211,7 +211,7 @@ class MusicSearcher {
                         // }
                         const cleanTitle = song.title.replace(/<em class="keyword">|<\/em>/g, "");
                         if (this.playlistManager.playlist.find((item) => item.title === cleanTitle)) {
-                            document.querySelector("#function-list .player").click();
+                            document.querySelector(".love-list").click();
                             return;
                         }
 
@@ -239,7 +239,7 @@ class MusicSearcher {
                         this.playlistManager.addSong(newSong);
                         this.playlistManager.setPlayingNow(this.playlistManager.playlist.length - 1);
                         this.uiManager.renderPlaylist();
-                        document.querySelector("#function-list .player").click();
+                        document.querySelector(".love-list").click();
                     } catch (error) {
                         console.error("添加歌曲失败:", error);
                     }
@@ -248,10 +248,9 @@ class MusicSearcher {
                 list.appendChild(div);
             });
 
-            // 清理搜索框
-            document.querySelector("#function-list span").style.display = "none";
-            document.querySelector(".search input").value = "";
-            document.querySelector(".search input").blur();
+            // document.querySelector(".indicator").classList.remove(".indicator");
+            document.querySelector(".search mdui-text-field").value = "";
+            document.querySelector(".search mdui-text-field").blur();
         } catch (error) {
             console.error("搜索失败:", error);
             const list = document.querySelector(".search-result .list");

@@ -76,14 +76,14 @@ class AudioPlayer {
         try {
             if (this.audio.paused) {
                 await this.audioPlay();
-                document.querySelector(".control>.buttons>.play").classList = "play played";
+                document.querySelector("mdui-button-icon .play").classList = "play played";
             } else {
                 this.audioPause();
-                document.querySelector(".control>.buttons>.play").classList = "play paused";
+                document.querySelector("mdui-button-icon .play").classList = "play paused";
             }
         } catch (e) {
             console.error("播放出错:", e);
-            document.querySelector(".control>.buttons>.play").classList = "play paused";
+            document.querySelector("mdui-button-icon .play").classList = "play paused";
         }
     }
 

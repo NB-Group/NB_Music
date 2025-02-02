@@ -12,6 +12,7 @@ body {
     flex-direction: column;
     overflow: hidden;
     margin: 0;
+    background-image: var(--bgul);
 }
 
 .title-bar {
@@ -52,6 +53,7 @@ mdui-navigation-rail {
 .right-container {
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
 }
 
 #playing-list img {
@@ -64,10 +66,17 @@ mdui-navigation-rail {
 
     mdui-list {
         height: 100%;
-        backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
-        -webkit-backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
+        backdrop-filter: blur(30px) saturate(1) brightness(1);
+        -webkit-backdrop-filter: blur(30px) saturate(1) brightness(1);
         background: transparent;
     }
+}
+.removing {
+    opacity: 0;
+    transform: translateX(100px);
+    max-height: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .mode {
@@ -82,7 +91,6 @@ mdui-navigation-rail {
     grid-template-columns: min-content auto;
     height: 100%;
     width: 100%;
-    padding-right: 10px;
 }
 
 .cover {
@@ -105,6 +113,9 @@ mdui-navigation-rail {
     padding-top: 13px;
 }
 
+.content > *{
+    transition: all 0.3s ease-in-out;
+}
 .content > .player {
     display: flex;
     width: 100%;
@@ -117,6 +128,7 @@ mdui-navigation-rail {
     flex-direction: column;
     height: 100%;
     padding: 7px 0;
+    background-color: rgba(var(--mdui-color-surface), 0.5);
 }
 
 .player-container {
@@ -135,4 +147,65 @@ mdui-navigation-rail {
 
 #lyrics-container {
     width: 100%;
+}
+.player>mdui-card{
+    background: #ffffff00;
+}
+.hide {
+    height: 0 !important;
+    overflow: hidden;
+}
+
+#lyrics-container {
+    text-align: center;
+    right: 0;
+    overflow-y: hidden;
+    max-height: 90%;
+    scroll-behavior: smooth;
+    width: 50%;
+    position: relative;
+}
+
+.lyric-line {
+    font-size: 20px;
+    line-height: 2;
+    margin: 10px 0;
+    min-height: 36px;
+    transition: all 0.3s ease;
+    transform-origin: center center;
+    backface-visibility: hidden;
+}
+
+.lyric-line.active {
+    font-size: 25px;
+    margin: 40px 0;
+}
+.lyrics-scroll-wrapper{
+    width: 100%;
+    will-change: transform;
+    transform: translateZ(0);
+}
+.char {
+    display: inline-block;
+    color: #555;
+    /* 默认灰色 */
+    transition: all 0.3s ease-in-out;
+    opacity: 0.7;
+    position: relative;
+    padding: 0 2px;
+}
+
+.char.active {
+    color: #fff;
+    /* 高亮时白色 */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.char.completed {
+    color: #666;
+    /* 完成后的灰色 */
+    opacity: 0.8;
+    transform: translateY(0);
 }
