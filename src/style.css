@@ -53,7 +53,7 @@ mdui-navigation-rail {
 .right-container {
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(30px) saturate(1.35) brightness(1.5);
+    backdrop-filter: blur(10px);
 }
 
 #playing-list img {
@@ -62,15 +62,17 @@ mdui-navigation-rail {
 }
 
 #playing-list-container {
-    --mdui-color-surface-container-low: transparent;
+    /* --mdui-color-surface-container-low: transparent; */
 
     mdui-list {
         height: 100%;
-        backdrop-filter: blur(30px) saturate(1) brightness(1);
-        -webkit-backdrop-filter: blur(30px) saturate(1) brightness(1);
-        background: transparent;
+        /* backdrop-filter: blur(30px) saturate(1) brightness(1);
+        -webkit-backdrop-filter: blur(30px) saturate(1) brightness(1); */
+        /* background: transparent; */
+        overflow: auto;
     }
 }
+
 .removing {
     opacity: 0;
     transform: translateX(100px);
@@ -113,7 +115,7 @@ mdui-navigation-rail {
     padding-top: 13px;
 }
 
-.content > *{
+.content > * {
     transition: all 0.3s ease-in-out;
 }
 .content > .player {
@@ -148,7 +150,7 @@ mdui-navigation-rail {
 #lyrics-container {
     width: 100%;
 }
-.player>mdui-card{
+.player > mdui-card {
     background: #ffffff00;
 }
 .hide {
@@ -180,7 +182,7 @@ mdui-navigation-rail {
     font-size: 25px;
     margin: 40px 0;
 }
-.lyrics-scroll-wrapper{
+.lyrics-scroll-wrapper {
     width: 100%;
     will-change: transform;
     transform: translateZ(0);
