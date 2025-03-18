@@ -634,3 +634,21 @@ select:disabled {
   background: var(--bg30);
   box-shadow: none;
 }
+
+/* 链接格式提示 */
+.link-format-tip {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+.format-example {
+  font-style: italic;
+}
+
+/* 导入对话框 */
+#importDialog .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

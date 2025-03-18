@@ -16,6 +16,9 @@ class LoginManager {
 
         this.bindEvents();
         this.updateLoginStatus();
+        
+        // 初始化自动刷新cookie功能
+        this.initAutoCookieRefresh();
     }
     
     async updateLoginStatus() {
@@ -254,7 +257,190 @@ class LoginManager {
         this.clearPolling();
     }
 
+    // 初始化自动刷新cookie
+    initAutoCookieRefresh() {
+        // 检查localStorage中是否有refresh_token
+        const refreshToken = localStorage.getItem('ac_time_value');
+        
+        if (refreshToken) {
+            // 检查是否需要刷新cookie（每天第一次访问时）
+            const lastCheckDate = localStorage.getItem('last_cookie_check_date');
+            const today = new Date().toDateString();
+            
+            if (lastCheckDate !== today) {
+                // 记录今天已经检查过
+                localStorage.setItem('last_cookie_check_date', today);
+                // 检查并刷新cookie
+                this.checkAndRefreshCookie(refreshToken);
+            }
+        }
+    }
     
+    // 检查是否需要刷新cookie
+    async checkAndRefreshCookie(refreshToken) {
+        try {
+            console.log('检查是否需要刷新cookie...');
+            const response = await axios.get('https://passport.bilibili.com/x/passport-login/web/cookie/info');
+            
+            if (response.data.code === 0) {
+                const { refresh, timestamp } = response.data.data;
+                
+                if (refresh) {
+                    console.log('需要刷新cookie');
+                    // 生成CorrespondPath
+                    const correspondPath = await this.generateCorrespondPath(timestamp);
+                    // 获取refresh_csrf
+                    const refreshCsrf = await this.getRefreshCsrf(correspondPath);
+                    
+                    if (refreshCsrf) {
+                        // 保存旧的refresh_token备用
+                        const oldRefreshToken = refreshToken;
+                        // 刷新Cookie
+                        const result = await this.refreshCookie(refreshCsrf, oldRefreshToken);
+                        
+                        if (result.success) {
+                            // 确认更新
+                            await this.confirmRefresh(oldRefreshToken, result.newCsrf);
+                            console.log('Cookie刷新成功');
+                        }
+                    }
+                } else {
+                    console.log('不需要刷新cookie');
+                }
+            }
+        } catch (error) {
+            console.error('检查刷新cookie失败:', error);
+        }
+    }
+    
+    // 生成CorrespondPath
+    async generateCorrespondPath(timestamp) {
+        try {
+            // 使用JavaScript内置的SubtleCrypto API进行RSA-OAEP加密
+            const publicKey = await window.crypto.subtle.importKey(
+                "jwk",
+                {
+                    kty: "RSA",
+                    n: "y4HdjgJHBlbaBN04VERG4qNBIFHP6a3GozCl75AihQloSWCXC5HDNgyinEnhaQ_4-gaMud_GF50elYXLlCToR9se9Z8z433U3KjM-3Yx7ptKkmQNAMggQwAVKgq3zYAoidNEWuxpkY_mAitTSRLnsJW-NCTa0bqBFF6Wm1MxgfE",
+                    e: "AQAB",
+                },
+                { name: "RSA-OAEP", hash: "SHA-256" },
+                true,
+                ["encrypt"],
+            );
+            
+            const data = new TextEncoder().encode(`refresh_${timestamp}`);
+            const encrypted = new Uint8Array(await window.crypto.subtle.encrypt(
+                { name: "RSA-OAEP" }, 
+                publicKey, 
+                data
+            ));
+            
+            return encrypted.reduce((str, c) => str + c.toString(16).padStart(2, "0"), "");
+        } catch (error) {
+            console.error('生成CorrespondPath失败:', error);
+            return null;
+        }
+    }
+    
+    // 获取refresh_csrf
+    async getRefreshCsrf(correspondPath) {
+        try {
+            const response = await axios.get(`https://www.bilibili.com/correspond/1/${correspondPath}`);
+            
+            // 从HTML响应中解析refresh_csrf
+            const htmlContent = response.data;
+            const match = htmlContent.match(/<div id="1-name">(.*?)<\/div>/);
+            
+            if (match && match[1]) {
+                return match[1];
+            }
+            throw new Error('获取refresh_csrf失败');
+        } catch (error) {
+            console.error('获取refresh_csrf失败:', error);
+            return null;
+        }
+    }
+    
+    // 刷新Cookie
+    async refreshCookie(refreshCsrf, refreshToken) {
+        try {
+            // 获取当前的CSRF Token
+            const biliJct = this.getCookie('bili_jct');
+            
+            if (!biliJct) {
+                throw new Error('获取bili_jct失败');
+            }
+            
+            // 构建请求参数
+            const params = new URLSearchParams();
+            params.append('csrf', biliJct);
+            params.append('refresh_csrf', refreshCsrf);
+            params.append('source', 'main_web');
+            params.append('refresh_token', refreshToken);
+            
+            // 发送请求
+            const response = await axios.post(
+                'https://passport.bilibili.com/x/passport-login/web/cookie/refresh',
+                params,
+                { withCredentials: true }
+            );
+            
+            if (response.data.code === 0) {
+                // 保存新的refresh_token
+                const newRefreshToken = response.data.data.refresh_token;
+                localStorage.setItem('ac_time_value', newRefreshToken);
+                
+                // 获取新的CSRF Token（从cookie中获取）
+                const newCsrf = this.getCookie('bili_jct');
+                
+                return {
+                    success: true,
+                    newRefreshToken,
+                    newCsrf
+                };
+            }
+            
+            throw new Error(response.data.message || '刷新Cookie失败');
+        } catch (error) {
+            console.error('刷新Cookie失败:', error);
+            return { success: false };
+        }
+    }
+    
+    // 确认更新
+    async confirmRefresh(oldRefreshToken, newCsrf) {
+        try {
+            // 构建请求参数
+            const params = new URLSearchParams();
+            params.append('csrf', newCsrf);
+            params.append('refresh_token', oldRefreshToken);
+            
+            // 发送请求
+            const response = await axios.post(
+                'https://passport.bilibili.com/x/passport-login/web/confirm/refresh',
+                params,
+                { withCredentials: true }
+            );
+            
+            if (response.data.code === 0) {
+                return true;
+            }
+            
+            throw new Error(response.data.message || '确认更新失败');
+        } catch (error) {
+            console.error('确认更新失败:', error);
+            return false;
+        }
+    }
+    
+    // 获取cookie值的辅助方法
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
 }
 
 module.exports = LoginManager;

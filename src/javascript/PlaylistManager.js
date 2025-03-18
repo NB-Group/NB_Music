@@ -146,6 +146,23 @@ class PlaylistManager {
     }
 
     async tryGetVideoUrl(bvid, cid, maxRetries = 2) {
+        // 先检查cid是否有效，如果无效则尝试获取
+        if (!cid) {
+            try {
+                const cidResponse = await axios.get(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`);
+                if (cidResponse.data.code === 0) {
+                    cid = cidResponse.data.data.cid;
+                }
+                
+                if (!cid) {
+                    throw new Error('无法获取视频CID');
+                }
+            } catch (error) {
+                console.error('获取CID失败:', error);
+                throw new Error('获取视频信息失败');
+            }
+        }
+        
         for (let i = 0; i < maxRetries; i++) {
             try {
                 // 使用musicSearcher获取视频URL，现在会考虑质量设置
@@ -365,9 +382,44 @@ class PlaylistManager {
         const progressBar = document.querySelector(".player .control .progress .progress-bar .progress-bar-inner");
         progressBar.classList.add('loading');
         const cacheEnabled = this.settingManager.getSetting("cacheEnabled");
+
+        // 清除之前的超时
+        if (this.loadingTimeout) {
+            clearTimeout(this.loadingTimeout);
+        }
+
+        // 设置新的超时
+        this.loadingTimeout = setTimeout(() => {
+            if (this.isLoading) {
+                // 超时后取消加载
+                console.warn('音频加载超时，正在取消请求');
+                if (this.currentLoadingController) {
+                    this.currentLoadingController.abort();
+                }
+                this.isLoading = false;
+                playButton.disabled = false;
+                progressBar.classList.remove('loading');
+                this.uiManager.showNotification('加载超时，请重试', 'error');
+            }
+        }, this.requestTimeoutMs);
+        
         for (let attempt = 0; attempt < maxRetries; attempt++) {
             try {
                 let currentUrl = song.audio;
+                
+                // 处理本地文件 - 本地文件使用blob URL或data URL
+                if (song.isLocal && song.audioFile) {
+                    this.audioPlayer.audio.src = song.audio;
+                    await this.audioPlayer.audio.play();
+                    document.querySelector(".control>.buttons>.play").classList = "play played";
+                    
+                    // 清除超时
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                    
+                    return;
+                }
+                
                 if (cacheEnabled) {
                     const cached = this.cacheManager.getCachedItem("audio_" + song.bvid);
                     if (cached) {
@@ -375,7 +427,9 @@ class PlaylistManager {
                         song.audio = currentUrl;
                     }
                 }
-                if (this.isUrlExpired(currentUrl) || lastError) {
+                
+                // 如果URL过期或之前尝试失败，获取新URL
+                if (this.isUrlExpired(currentUrl) || lastError || !currentUrl) {
                     const urls = await this.musicSearcher.getAudioLink(song.bvid, true);
                     currentUrl = urls[0];
                     song.audio = currentUrl;
@@ -385,23 +439,44 @@ class PlaylistManager {
                         this.cacheManager.cacheItem("audio_" + song.bvid, currentUrl);
                     }
                 }
-                const response = await axios.get(currentUrl);
-                if (response.status === 403) {
-                    const urls = await this.musicSearcher.getAudioLink(song.bvid, true);
-                    currentUrl = urls[1];
-                    song.audio = currentUrl;
-                    this.updateUrlExpiryTime(currentUrl);
-                    this.savePlaylists();
-                    if (cacheEnabled) {
-                        this.cacheManager.cacheItem("audio_" + song.bvid, currentUrl);
+                
+                // 为非本地文件检查URL可用性
+                if (!song.isLocal) {
+                    try {
+                        const response = await axios.get(currentUrl, { 
+                            timeout: 5000,
+                            validateStatus: status => status !== 403 // 只将403视为错误
+                        });
+                        
+                        if (response.status === 403) {
+                            throw new Error('访问被拒绝');
+                        }
+                    } catch (error) {
+                        console.warn('主音频URL不可用，尝试备用URL');
+                        const urls = await this.musicSearcher.getAudioLink(song.bvid, true);
+                        currentUrl = urls.length > 1 ? urls[1] : urls[0];
+                        song.audio = currentUrl;
+                        this.updateUrlExpiryTime(currentUrl);
+                        this.savePlaylists();
+                        if (cacheEnabled) {
+                            this.cacheManager.cacheItem("audio_" + song.bvid, currentUrl);
+                        }
                     }
                 }
+                
                 this.audioPlayer.audio.src = currentUrl;
                 await this.audioPlayer.audio.play();
                 document.querySelector(".control>.buttons>.play").classList = "play played";
+                
+                // 清除超时
+                clearTimeout(this.loadingTimeout);
+                this.loadingTimeout = null;
+                
                 return;
             } catch (error) {
                 lastError = error;
+                console.error(`播放尝试 ${attempt + 1} 失败:`, error);
+                
                 if (attempt < maxRetries - 1) {
                     await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
                 } else {
@@ -412,6 +487,10 @@ class PlaylistManager {
                 this.isLoading = false;
                 playButton.disabled = false;
                 progressBar.classList.remove('loading');
+                
+                // 清除超时
+                clearTimeout(this.loadingTimeout);
+                this.loadingTimeout = null;
             }
         }
     }
@@ -830,6 +909,81 @@ class PlaylistManager {
 
         } catch (error) {
             console.error("重命名歌单失败:", error);
+        }
+    }
+
+    // 添加本地音频文件
+    async addLocalSong(audio, metadata = {}) {
+        try {
+            // 生成唯一ID
+            const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 创建本地歌曲对象
+            const localSong = {
+                bvid: localId,
+                id: localId,
+                isLocal: true,
+                title: metadata.title || '本地音乐',
+                artist: metadata.artist || '未知艺术家',
+                audio: metadata.audioUrl || '',
+                poster: metadata.coverUrl || '../img/NB_Music.png',
+                video: metadata.videoUrl || '',
+                audioFile: metadata.audioFile || null,
+                coverFile: metadata.coverFile || null,
+                videoFile: metadata.videoFile || null,
+                cid: null,
+                lyric: ''
+            };
+            
+            // 添加到播放列表
+            await this.addSong(localSong);
+            
+            // 如果添加成功后，自动播放这首歌
+            if (metadata.autoPlay) {
+                const newIndex = this.playlist.length - 1;
+                this.setPlayingNow(newIndex);
+            }
+            
+            return localSong;
+        } catch (error) {
+            console.error("添加本地歌曲失败:", error);
+            if (this.uiManager) {
+                this.uiManager.showNotification('添加本地歌曲失败: ' + error.message, 'error');
+            }
+            return null;
+        }
+    }
+
+    // 获取当前播放歌曲的视频URL
+    async getCurrentVideoUrl() {
+        try {
+            if (this.playlist.length === 0 || this.playingNow < 0) {
+                return null;
+            }
+            
+            const currentSong = this.playlist[this.playingNow];
+            
+            // 如果是本地歌曲且有本地视频
+            if (currentSong.isLocal && currentSong.video) {
+                return currentSong.video;
+            }
+            
+            // 如果不是本地歌曲，则尝试获取视频链接
+            if (!currentSong.video || this.isUrlExpired(currentSong.video)) {
+                const videoUrl = await this.tryGetVideoUrl(currentSong.bvid, currentSong.cid);
+                currentSong.video = videoUrl;
+                this.updateUrlExpiryTime(videoUrl);
+                this.savePlaylists();
+                return videoUrl;
+            }
+            
+            return currentSong.video;
+        } catch (error) {
+            console.error("获取视频链接失败:", error);
+            if (this.uiManager) {
+                this.uiManager.showNotification('获取视频链接失败: ' + error.message, 'warning');
+            }
+            return null;
         }
     }
 }

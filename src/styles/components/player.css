@@ -270,10 +270,8 @@
 .advanced-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 4px;
-  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .speed-control {
@@ -312,4 +310,60 @@
 
 .playmode:active {
   transform: scale(0.95);
+}
+
+.play-video-btn, .local-import-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.play-video-btn:hover, .local-import-btn:hover {
+  background-color: rgba(var(--theme-1-rgb), 0.1);
+}
+
+.play-video-btn i, .local-import-btn i {
+  font-size: 1.2rem;
+}
+
+.play-video-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 播放状态过渡效果 */
+.play.playing, .play.pausing {
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 进度条加载状态 */
+.progress-bar-inner.loading {
+  background: linear-gradient(90deg, 
+    rgba(var(--theme-1-rgb), 0.7), 
+    rgba(var(--theme-2-rgb), 0.7), 
+    rgba(var(--theme-1-rgb), 0.7));
+  background-size: 200% 100%;
+  animation: loading 1.5s linear infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
 }

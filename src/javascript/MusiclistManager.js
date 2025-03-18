@@ -142,6 +142,7 @@ class MusiclistManager {
             input.type = "text";
             input.placeholder = "输入歌单名称";
             input.className = "playlist-input";
+            input.maxLength = 30; // 限制歌单名称最大长度为30个字符
 
             input.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -184,6 +185,50 @@ class MusiclistManager {
         const cancelBtn = document.getElementById('cancelImport');
         const confirmBtn = document.getElementById('confirmImport');
         const favLinkInput = document.getElementById('favLink');
+        const linkLabel = document.getElementById('linkLabel');
+        const formatExample = document.getElementById('formatExample');
+
+        // 添加获取自定义下拉框值的辅助函数
+        const getCustomSelectValue = (selectId) => {
+            const customSelect = document.getElementById(selectId);
+            if (!customSelect) return null;
+            const selectedItem = customSelect.querySelector('.select-item.selected');
+            return selectedItem ? selectedItem.getAttribute('data-value') : null;
+        };
+
+        // 监听自定义下拉框点击，在事件委托由其他代码处理，这里只处理显示相关内容的更新
+        document.addEventListener('click', (e) => {
+            // 如果是选择了importType的选项
+            if (e.target.classList.contains('select-item') && 
+                e.target.closest('#importType')) {
+                
+                // 更新提示文本基于选中的值
+                const importType = e.target.getAttribute('data-value');
+                updateImportTypeUI(importType);
+            }
+        });
+
+        // 更新导入类型提示的函数
+        const updateImportTypeUI = (importType) => {
+            switch (importType) {
+                case 'fav':
+                    linkLabel.textContent = '收藏夹链接或ID:';
+                    favLinkInput.placeholder = '输入收藏夹链接或ID';
+                    formatExample.textContent = '收藏夹ID或链接(fid=xxx)';
+                    break;
+                case 'season':
+                    linkLabel.textContent = '合集链接或ID:';
+                    favLinkInput.placeholder = '输入合集链接或ID';
+                    formatExample.textContent = '合集链接(space.bilibili.com/xxx/lists/数字)或ID';
+                    break;
+            }
+        };
+
+        // 初始化时设置默认导入类型UI
+        setTimeout(() => {
+            const initialImportType = getCustomSelectValue('importType') || 'fav';
+            updateImportTypeUI(initialImportType);
+        }, 100);
 
         importBtn.addEventListener('click', () => {
             importDialog.classList.remove('hide');
@@ -197,31 +242,29 @@ class MusiclistManager {
 
         confirmBtn.addEventListener('click', async () => {
             const input = favLinkInput.value.trim();
+            const importType = getCustomSelectValue('importType') || 'fav';
+            
             if (!input) {
-                this.uiManager.showNotification('请输入收藏夹链接或ID', 'error');
+                this.uiManager.showNotification('请输入链接或ID', 'error');
                 return;
-            }
-
-            // 解析收藏夹ID
-            let mediaId;
-            if (/^\d+$/.test(input)) {
-                // 直接输入的ID
-                mediaId = input;
-            } else {
-                // 解析链接中的ID
-                const match = input.match(/fid=(\d+)/);
-                if (!match) {
-                    alert('无法解析收藏夹ID，请确认输入格式正确');
-                    return;
-                }
-                mediaId = match[1];
             }
 
             try {
                 confirmBtn.disabled = true;
                 confirmBtn.textContent = '导入中...';
 
-                const result = await this.importFromBiliFav(mediaId);
+                let result;
+                switch (importType) {
+                    case 'fav':
+                        result = await this.importFromBiliFav(input);
+                        break;
+                    case 'season':
+                        result = await this.importFromBiliSeason(input);
+                        break;
+                    default:
+                        throw new Error('未知的导入类型');
+                }
+
                 if (result.success) {
                     this.uiManager.showNotification(result.message, 'success');
                     importDialog.classList.add('hide');
@@ -286,6 +329,7 @@ class MusiclistManager {
             const nameSpan = document.createElement("span");
             nameSpan.textContent = playlist.name;
             nameSpan.classList.add("playlist-name");
+            nameSpan.title = playlist.name; // 添加title属性，鼠标悬停时显示完整名称
             li.appendChild(nameSpan);
 
             if (index === this.activePlaylistIndex) {
@@ -295,6 +339,7 @@ class MusiclistManager {
             // 创建按钮容器
             const buttonContainer = document.createElement("div");
             buttonContainer.classList.add("playlist-buttons");
+            buttonContainer.style.flexShrink = "0"; // 防止按钮被压缩
 
             // 重命名按钮
             const renameBtn = document.createElement("i");
@@ -455,6 +500,7 @@ class MusiclistManager {
         input.value = originalName;
         input.className = 'playlist-input';
         input.style.width = 'calc(100% - 60px)';
+        input.maxLength = 30; // 限制重命名时的最大长度
         input.addEventListener("click", (e) => {
             e.stopPropagation();
         });
@@ -606,8 +652,19 @@ class MusiclistManager {
         let lyricsNotification = null;
 
         try {
+            // 解析收藏夹ID
+            let favId = mediaId;
+            if (!/^\d+$/.test(mediaId)) {
+                // 解析链接中的ID
+                const match = mediaId.match(/fid=(\d+)/);
+                if (!match) {
+                    throw new Error('无法解析收藏夹ID，请确认输入格式正确');
+                }
+                favId = match[1];
+            }
+
             // 1. 获取收藏夹信息
-            const favResponse = await axios.get(`https://api.bilibili.com/x/v3/fav/folder/info?media_id=${mediaId}`);
+            const favResponse = await axios.get(`https://api.bilibili.com/x/v3/fav/folder/info?media_id=${favId}`);
             if (favResponse.data.code !== 0) {
                 throw new Error('获取收藏夹信息失败');
             }
@@ -640,7 +697,7 @@ class MusiclistManager {
             // 3. 逐页获取视频信息
             for (let page = 1; page <= totalPages; page++) {
                 const resourcesResponse = await axios.get(
-                    `https://api.bilibili.com/x/v3/fav/resource/list?media_id=${mediaId}&pn=${page}&ps=${pageSize}&platform=web`
+                    `https://api.bilibili.com/x/v3/fav/resource/list?media_id=${favId}&pn=${page}&ps=${pageSize}&platform=web`
                 );
 
                 if (resourcesResponse.data.code !== 0) continue;
@@ -686,48 +743,7 @@ class MusiclistManager {
             importNotification.remove();
 
             // 4. 获取歌词
-            let lyricsCount = 0;
-            lyricsNotification = this.uiManager.showNotification(
-                `正在获取歌词: 0/${songsToAdd.length}`,
-                'info',
-                { showProgress: true, progress: 0 }
-            );
-
-            const songsWithLyrics = [];
-            for (const song of songsToAdd) {
-                try {
-                    let lyric;
-                    if (this.lyricSearchType === 'custom') {
-                        lyric = await this.showLyricSearchDialog(song);
-                    } else {
-                        lyric = await this.musicSearcher.getLyrics(song.title);
-                    }
-
-                    songsWithLyrics.push({
-                        ...song,
-                        lyric: lyric || "暂无歌词，尽情欣赏音乐"
-                    });
-
-                    // 更新歌词获取进度
-                    lyricsCount++;
-                    const progress = (lyricsCount / songsToAdd.length) * 100;
-
-                    // 更新进度条和文本
-                    lyricsNotification.querySelector('.notification-message').textContent =
-                        `正在获取歌词: ${lyricsCount}/${songsToAdd.length}`;
-                    lyricsNotification.querySelector('.notification-progress-inner').style.width =
-                        `${progress}%`;
-                } catch (error) {
-                    console.warn(`获取歌词失败: ${song.title}`, error);
-                    songsWithLyrics.push({
-                        ...song,
-                        lyric: "暂无歌词，尽情欣赏音乐"
-                    });
-                }
-            }
-
-            // 歌词获取完成后移除通知
-            lyricsNotification.remove();
+            const songsWithLyrics = await this.processSongsLyrics(songsToAdd);
 
             // 5. 更新歌单
             this.playlists[playlistIndex].songs = songsWithLyrics;
@@ -735,11 +751,6 @@ class MusiclistManager {
             this.savePlaylists();
 
             // 6. 显示完成消息
-            this.uiManager.showNotification(
-                `成功导入 ${songsWithLyrics.length} 首歌曲到歌单"${playlistTitle}"`,
-                'success'
-            );
-
             return {
                 success: true,
                 message: `成功导入 ${songsWithLyrics.length} 首歌曲到歌单"${playlistTitle}"`
@@ -751,8 +762,6 @@ class MusiclistManager {
             lyricsNotification?.remove();
 
             // 显示错误消息
-            this.uiManager.showNotification('导入失败: ' + error.message, 'error');
-
             console.error('从B站收藏夹导入失败:', error);
             return {
                 success: false,
@@ -816,6 +825,231 @@ class MusiclistManager {
             keywordInput.focus();
             keywordInput.select();
         });
+    }
+
+    parseInputId(input, type) {
+        // 根据不同类型解析ID
+        switch (type) {
+            case 'fav':
+                if (/^\d+$/.test(input)) {
+                    return input; // 直接输入的ID
+                } else {
+                    // 解析链接中的ID
+                    const match = input.match(/fid=(\d+)/);
+                    if (match) return match[1];
+                }
+                break;
+            case 'season':
+                if (/^\d+$/.test(input)) {
+                    return input; // 直接输入的ID
+                } else {
+                    // 解析合集链接格式：https://space.bilibili.com/1060544882/lists/1049571?type=season
+                    const match = input.match(/\/lists\/(\d+)/) || 
+                                  input.match(/sid=(\d+)/) || 
+                                  input.match(/season_id=(\d+)/);
+                    if (match) return match[1];
+                }
+                break;
+        }
+        
+        return null; // 无法解析
+    }
+
+    async importFromBiliSeason(input) {
+        let importNotification = null;
+        let lyricsNotification = null;
+
+        try {
+            // 解析合集ID
+            const seasonId = this.parseInputId(input, 'season');
+            if (!seasonId) {
+                throw new Error('无法解析合集ID，请确认输入格式正确');
+            }
+
+            // 1. 获取合集信息，需要mid参数，先尝试获取
+            const testResponse = await axios.get(`https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?season_id=${seasonId}&page_num=1&page_size=1`);
+            if (testResponse.data.code !== 0) {
+                throw new Error('获取合集信息失败: ' + testResponse.data.message);
+            }
+
+            const mid = testResponse.data.data.meta.mid;
+            const seasonInfo = testResponse.data.data.meta;
+
+            // 2. 使用mid获取完整合集信息
+            const seasonResponse = await axios.get(
+                `https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100`
+            );
+
+            if (seasonResponse.data.code !== 0) {
+                throw new Error('获取合集视频失败: ' + seasonResponse.data.message);
+            }
+
+            const videos = seasonResponse.data.data.archives;
+            const totalCount = videos.length;
+
+            if (totalCount === 0) {
+                throw new Error('该合集中没有视频');
+            }
+
+            // 创建新歌单
+            const playlistTitle = `${seasonInfo.name}`;
+            const playlistIndex = this.playlists.length;
+            this.playlists.push({
+                id: this.generateUUID(),
+                name: playlistTitle,
+                songs: []
+            });
+
+            // 收集所有要添加的歌曲信息
+            const songsToAdd = [];
+            let processedCount = 0;
+
+            // 显示导入进度通知
+            importNotification = this.uiManager.showNotification(
+                `正在导入歌单: 0/${totalCount}`,
+                'info',
+                { showProgress: true, progress: 0 }
+            );
+
+            // 处理每个视频
+            for (const video of videos) {
+                try {
+                    // 检查video对象中是否包含有效的cid
+                    // 如果没有cid或cid为无效值，则获取视频详情
+                    let cid = video.cid;
+                    
+                    // 如果cid不存在或无效
+                    if (!cid) {
+                        try {
+                            const videoDetailResponse = await axios.get(
+                                `https://api.bilibili.com/x/web-interface/view?bvid=${video.bvid}`
+                            );
+                            
+                            if (videoDetailResponse.data.code === 0) {
+                                cid = videoDetailResponse.data.data.cid;
+                            }
+                            
+                            // 如果获取失败，记录警告但继续处理
+                            if (!cid) {
+                                console.warn(`无法获取视频 ${video.bvid} 的CID，可能会影响播放`);
+                            }
+                        } catch (error) {
+                            console.warn(`获取视频 ${video.bvid} 详情失败:`, error);
+                        }
+                    }
+                    
+                    songsToAdd.push({
+                        title: video.title,
+                        artist: video.author || seasonInfo.name || "未知UP主",
+                        bvid: video.bvid,
+                        cid: cid, // 确保使用获取到的cid
+                        duration: video.duration,
+                        poster: video.pic,
+                        audio: null
+                    });
+
+                    // 更新导入进度
+                    processedCount++;
+                    const progress = (processedCount / totalCount) * 100;
+
+                    // 更新进度条和文本
+                    importNotification.querySelector('.notification-message').textContent =
+                        `正在导入歌单: ${processedCount}/${totalCount}`;
+                    importNotification.querySelector('.notification-progress-inner').style.width =
+                        `${progress}%`;
+                } catch (error) {
+                    console.warn(`处理视频 ${video.bvid} 失败:`, error);
+                    continue;
+                }
+
+                // 加入适当的延迟，避免请求过于频繁
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // 导入完成后移除通知
+            importNotification.remove();
+
+            // 获取歌词
+            const songsWithLyrics = await this.processSongsLyrics(songsToAdd);
+
+            // 更新歌单
+            this.playlists[playlistIndex].songs = songsWithLyrics;
+            this.handlePlaylistUpdate();
+            this.savePlaylists();
+
+            // 显示完成消息
+            return {
+                success: true,
+                message: `成功导入 ${songsWithLyrics.length} 首歌曲到歌单"${playlistTitle}"`
+            };
+
+        } catch (error) {
+            // 发生错误时移除进度通知
+            importNotification?.remove();
+            lyricsNotification?.remove();
+
+            console.error('从B站合集导入失败:', error);
+            return {
+                success: false,
+                message: '导入失败: ' + error.message
+            };
+        }
+    }
+
+    async processSongsLyrics(songsToAdd) {
+        const lyricsNotification = this.uiManager.showNotification(
+            `正在获取歌词: 0/${songsToAdd.length}`,
+            'info',
+            { showProgress: true, progress: 0 }
+        );
+
+        let lyricsCount = 0;
+        const songsWithLyrics = [];
+        
+        for (const song of songsToAdd) {
+            try {
+                let lyric;
+                if (this.lyricSearchType === 'custom') {
+                    lyric = await this.showLyricSearchDialog(song);
+                } else {
+                    lyric = await this.musicSearcher.getLyrics(song.title);
+                }
+
+                songsWithLyrics.push({
+                    ...song,
+                    lyric: lyric || "暂无歌词，尽情欣赏音乐"
+                });
+
+                // 更新歌词获取进度
+                lyricsCount++;
+                const progress = (lyricsCount / songsToAdd.length) * 100;
+
+                // 更新进度条和文本
+                lyricsNotification.querySelector('.notification-message').textContent =
+                    `正在获取歌词: ${lyricsCount}/${songsToAdd.length}`;
+                lyricsNotification.querySelector('.notification-progress-inner').style.width =
+                    `${progress}%`;
+            } catch (error) {
+                console.warn(`获取歌词失败: ${song.title}`, error);
+                songsWithLyrics.push({
+                    ...song,
+                    lyric: "暂无歌词，尽情欣赏音乐"
+                });
+                
+                // 仍然更新进度
+                lyricsCount++;
+                const progress = (lyricsCount / songsToAdd.length) * 100;
+                lyricsNotification.querySelector('.notification-message').textContent =
+                    `正在获取歌词: ${lyricsCount}/${songsToAdd.length}`;
+                lyricsNotification.querySelector('.notification-progress-inner').style.width =
+                    `${progress}%`;
+            }
+        }
+
+        // 歌词获取完成后移除通知
+        lyricsNotification.remove();
+        
+        return songsWithLyrics;
     }
 }
 

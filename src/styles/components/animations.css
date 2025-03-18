@@ -242,3 +242,47 @@ nav a:nth-child(2) { animation-delay: 0.1s; }
 nav a:nth-child(3) { animation-delay: 0.15s; }
 nav a:nth-child(4) { animation-delay: 0.2s; }
 nav a:nth-child(5) { animation-delay: 0.25s; }
+
+/* 旋转动画 */
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
+
+/* 闪烁动画 */
+.blink {
+  animation: blink 1s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 脉冲动画 */
+.pulse {
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 弹跳动画 */
+.bounce {
+  animation: bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounce {
+  0% { transform: scale(0.8); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}

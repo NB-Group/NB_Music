@@ -375,6 +375,23 @@ class MusicSearcher {
     }
     async getBilibiliVideoUrl(bvid, cid) {
         try {
+            // 如果cid不存在，尝试获取
+            if (!cid) {
+                try {
+                    const cidResponse = await axios.get(`https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`);
+                    if (cidResponse.data.code === 0) {
+                        cid = cidResponse.data.data.cid;
+                    }
+                    
+                    if (!cid) {
+                        throw new Error('无法获取视频CID');
+                    }
+                } catch (error) {
+                    console.error('获取CID失败:', error);
+                    throw new Error('获取视频信息失败');
+                }
+            }
+            
             // 获取用户设置的视频清晰度，默认为720P
             let quality = 64; // 默认720P
             

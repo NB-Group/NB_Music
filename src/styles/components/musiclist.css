@@ -116,6 +116,8 @@
   gap: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  flex-shrink: 0; /* 防止按钮被压缩 */
+  margin-left: auto; /* 始终靠右对齐 */
 }
 
 li:hover .playlist-buttons {

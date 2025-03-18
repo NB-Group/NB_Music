@@ -15,9 +15,12 @@
 @import './components/controls.css';
 @import './components/notifications.css';
 @import './components/dropdown.css';
+@import './components/videoplayer.css';   /* 添加视频播放器样式 */
+@import './components/localimport.css';   /* 本地导入样式 */
+@import './components/playerstates.css';  /* 播放器状态样式 */
 
 /* 导入动画 */
-@import './components/animations.css';
+@import './components/animations.css';    /* 动画样式 */
 
 /* 导入工具 */
 @import './utilities.css';

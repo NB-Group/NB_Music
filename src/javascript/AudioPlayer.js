@@ -9,6 +9,10 @@ class AudioPlayer {
         this.volumeInterval = null;
         this.settingManager = null; // 将在初始化时设置
         this.lastProgressSaveTime = 0;
+        this.isPlayRequestPending = false; // 跟踪播放请求状态
+        this.uimanager = null; // 将由UIManager设置
+        // 添加事件系统支持
+        this.eventListeners = {};
         
         this.audio.addEventListener("timeupdate", () => {
             // 增加保存频率：每10秒保存一次进度
@@ -23,15 +27,34 @@ class AudioPlayer {
         this.audio.addEventListener("pause", () => {
             this.playlistManager.savePlaylists();
             this.lastProgressSaveTime = Date.now();
+            this.isPlayRequestPending = false; // 重置请求状态
         });
         
         // 在播放结束时保存进度
         this.audio.addEventListener('ended', () => {
             this.playlistManager.savePlaylists();
             this.lastProgressSaveTime = Date.now();
+            this.isPlayRequestPending = false; // 重置请求状态
             
             if (this.playlistManager) {
                 this.playlistManager.next();
+            }
+        });
+        
+        // 监听错误事件
+        this.audio.addEventListener('error', (e) => {
+            console.error('音频播放错误:', e);
+            this.isPlayRequestPending = false;
+            if (this.uimanager) {
+                this.uimanager.showNotification('播放出错，正在尝试恢复...', 'warning');
+                // 尝试重新加载当前歌曲
+                setTimeout(() => {
+                    if (this.playlistManager && this.playlistManager.playlist.length > 0) {
+                        this.playlistManager.tryPlayWithRetry(
+                            this.playlistManager.playlist[this.playlistManager.playingNow]
+                        );
+                    }
+                }, 1000);
             }
         });
         
@@ -59,6 +82,7 @@ class AudioPlayer {
             if ("mediaSession" in navigator) {
                 navigator.mediaSession.playbackState = "playing";
             }
+            this.isPlayRequestPending = false; // 重置请求状态
         });
 
         this.audio.addEventListener("pause", () => {
@@ -69,84 +93,137 @@ class AudioPlayer {
     }
 
     async audioPlay() {
-        // 检查是否启用了淡入淡出效果
-        const fadeEnabled = this.settingManager && 
-            this.settingManager.getSetting('fadeEnabled') === 'true';
-
-        // 清除现有间隔
-        if (this.volumeInterval) {
-            clearInterval(this.volumeInterval);
-            this.volumeInterval = null;
-        }
-
-        // 如果禁用了淡入淡出效果，直接设置音量为1并播放
-        if (!fadeEnabled) {
-            this.audio.volume = 1;
-            await this.audio.play();
-            return;
-        }
-
-        // 启用淡入淡出时的逻辑
-        await this.audio.play();
-        this.volumeInterval = window.setInterval(() => {
-            this.audio.volume += 0.01;
-            if (this.audio.volume >= 0.98) {
-                this.audio.volume = 1;
-                clearInterval(this.volumeInterval);
-                this.volumeInterval = null;
-            }
-        }, 6);
-    }
-
-    audioPause() {
-        // 检查是否启用了淡入淡出效果
-        const fadeEnabled = this.settingManager && 
-            this.settingManager.getSetting('fadeEnabled') === 'true';
-
-        // 清除现有间隔
-        if (this.volumeInterval) {
-            clearInterval(this.volumeInterval);
-            this.volumeInterval = null;
-        }
-
-        // 如果禁用了淡入淡出效果，直接暂停
-        if (!fadeEnabled) {
-            this.audio.pause();
-            return;
-        }
-
-        // 启用淡入淡出时的逻辑
-        this.volumeInterval = window.setInterval(() => {
-            this.audio.volume -= 0.01;
-            if (this.audio.volume <= 0.02) {
-                this.audio.volume = 0;
-                this.audio.pause();
-                clearInterval(this.volumeInterval);
-                this.volumeInterval = null;
-            }
-        }, 6);
-    }
-
-    async play() {
+        // 防止重复请求
+        if (this.isPlayRequestPending) return;
+        this.isPlayRequestPending = true;
+        
         try {
-            if (this.audio.src==="")
-            {
-                this.uimanager.showNotification("无音频链接"); 
+            // 检查是否启用了淡入淡出效果
+            const fadeEnabled = this.settingManager && 
+                this.settingManager.getSetting('fadeEnabled') === 'true';
+
+            // 清除现有间隔
+            if (this.volumeInterval) {
+                clearInterval(this.volumeInterval);
+                this.volumeInterval = null;
             }
-            if (this.audio.paused) {
-                await this.audioPlay();
-                document.querySelector(".control>.buttons>.play").classList = "play played";
-            } else {
-                this.audioPause();
-                document.querySelector(".control>.buttons>.play").classList = "play paused";
+
+            // 如果禁用了淡入淡出效果，直接设置音量为1并播放
+            if (!fadeEnabled) {
+                this.audio.volume = 1;
+                await this.audio.play();
+                return;
             }
-        } catch (e) {
-            document.querySelector(".control>.buttons>.play").classList = "play paused";
+
+            // 启用淡入淡出时的逻辑
+            this.audio.volume = 0.1; // 从较低的音量开始，避免完全无声
+            await this.audio.play();
+            
+            this.volumeInterval = window.setInterval(() => {
+                this.audio.volume += 0.01;
+                if (this.audio.volume >= 0.98) {
+                    this.audio.volume = 1;
+                    clearInterval(this.volumeInterval);
+                    this.volumeInterval = null;
+                }
+            }, 6);
+        } catch (error) {
+            console.error('播放失败:', error);
+            this.isPlayRequestPending = false;
+            // 尝试恢复
+            if (this.uimanager) {
+                this.uimanager.showNotification('播放失败，正在重试...', 'error');
+            }
             this.playlistManager.tryPlayWithRetry(this.playlistManager.playlist[this.playlistManager.playingNow]);
         }
     }
 
+    audioPause() {
+        // 防止在暂停过程中触发新的暂停
+        if (!this.audio.paused && !this.isPlayRequestPending) {
+            this.isPlayRequestPending = true;
+            
+            // 检查是否启用了淡入淡出效果
+            const fadeEnabled = this.settingManager && 
+                this.settingManager.getSetting('fadeEnabled') === 'true';
+
+            // 清除现有间隔
+            if (this.volumeInterval) {
+                clearInterval(this.volumeInterval);
+                this.volumeInterval = null;
+            }
+
+            // 如果禁用了淡入淡出效果，直接暂停
+            if (!fadeEnabled) {
+                this.audio.pause();
+                this.isPlayRequestPending = false;
+                return;
+            }
+
+            // 保存当前音量，用于淡出后重置
+            const originalVolume = this.audio.volume;
+
+            // 启用淡入淡出时的逻辑
+            this.volumeInterval = window.setInterval(() => {
+                this.audio.volume -= 0.01;
+                if (this.audio.volume <= 0.02) {
+                    this.audio.volume = 0;
+                    this.audio.pause();
+                    // 重置音量为原始值，以便下次播放
+                    this.audio.volume = originalVolume;
+                    clearInterval(this.volumeInterval);
+                    this.volumeInterval = null;
+                    this.isPlayRequestPending = false;
+                }
+            }, 6);
+        }
+    }
+
+    async play() {
+        try {
+            if (!this.audio.src) {
+                if (this.uimanager) {
+                    this.uimanager.showNotification("无音频链接", "warning");
+                }
+                return;
+            }
+            
+            // 防止快速连续点击
+            if (this.isPlayRequestPending) return;
+            
+            const playButton = document.querySelector(".control>.buttons>.play");
+            
+            if (this.audio.paused) {
+                // 立即更新UI，提供即时反馈
+                playButton.classList = "play playing";
+                await this.audioPlay();
+                playButton.classList = "play played";
+            } else {
+                // 立即更新UI，提供即时反馈
+                playButton.classList = "play pausing";
+                this.audioPause();
+                playButton.classList = "play paused";
+            }
+        } catch (e) {
+            console.error("播放控制错误:", e);
+            document.querySelector(".control>.buttons>.play").classList = "play paused";
+            this.isPlayRequestPending = false;
+            if (this.uimanager) {
+                this.uimanager.showNotification("播放失败，正在重试...", "error");
+            }
+            // 添加短暂延迟再重试，避免立即重试可能导致的同样错误
+            setTimeout(() => {
+                this.playlistManager.tryPlayWithRetry(this.playlistManager.playlist[this.playlistManager.playingNow]);
+            }, 1000);
+        }
+    }
+
     prev() {
+        // 检查是否有请求正在处理中
+        if (this.isPlayRequestPending || this.playlistManager.isLoading) {
+            return;
+        }
+        
         // 重置音量和清除间隔
         if (this.volumeInterval) {
             clearInterval(this.volumeInterval);
@@ -172,6 +249,11 @@ class AudioPlayer {
     }
     
     next() {
+        // 检查是否有请求正在处理中
+        if (this.isPlayRequestPending || this.playlistManager.isLoading) {
+            return;
+        }
+        
         // 重置音量和清除间隔
         if (this.volumeInterval) {
             clearInterval(this.volumeInterval);
@@ -199,6 +281,43 @@ class AudioPlayer {
     // 设置 settingManager 的方法
     setSettingManager(settingManager) {
         this.settingManager = settingManager;
+    }
+    
+    // 设置 uiManager 引用
+    setUiManager(uiManager) {
+        this.uimanager = uiManager;
+    }
+    
+    // 添加事件监听器
+    addEventListener(event, callback) {
+        if (!this.eventListeners[event]) {
+            this.eventListeners[event] = [];
+        }
+        this.eventListeners[event].push(callback);
+    }
+
+    // 移除事件监听器
+    removeEventListener(event, callback) {
+        if (!this.eventListeners[event]) return;
+        this.eventListeners[event] = this.eventListeners[event].filter(cb => cb !== callback);
+    }
+
+    // 触发事件
+    dispatchEvent(event, data) {
+        if (!this.eventListeners[event]) return;
+        this.eventListeners[event].forEach(callback => {
+            callback(data);
+        });
+    }
+
+    // 重置播放状态
+    resetPlayState() {
+        this.isPlayRequestPending = false;
+        if (this.volumeInterval) {
+            clearInterval(this.volumeInterval);
+            this.volumeInterval = null;
+        }
+        this.audio.volume = 1;
     }
 }
 

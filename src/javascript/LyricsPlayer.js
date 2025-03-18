@@ -23,6 +23,13 @@ class LyricsPlayer {
         this.audio.addEventListener("pause", () => this.stop());
         this.audio.addEventListener("seeking", () => this.onSeek());
 
+        // 添加页面可见性状态检测
+        this.isVisible = true;
+        this.resizeObserver = null;
+        
+        // 初始化可见性监听
+        this.initVisibilityObserver();
+        
         this.setVisibility(this.settingManager.getSetting('lyricsEnabled')=="true");
         this.init();
     }
@@ -126,6 +133,11 @@ class LyricsPlayer {
         if (this.lyricsContainer) {
             this.lyricsContainer.style.opacity = visible ? '1' : '0';
             this.lyricsContainer.style.width = visible ? '' : '0';
+            
+            // 如果正在显示并且容器可见，刷新布局
+            if (visible && this.isVisible) {
+                setTimeout(() => this.refreshLayout(), 50);
+            }
         }
     }
 
@@ -138,6 +150,14 @@ class LyricsPlayer {
         this.scrollWrapper.innerHTML = "";
         this.parsedData = this.parseLyrics(newLyricsString);
         this.init();
+        
+        // 添加一个小延迟，等待DOM更新后刷新布局
+        setTimeout(() => {
+            if (this.isVisible) {
+                this.refreshLayout();
+            }
+        }, 50);
+        
         if (!this.audio.paused) {
             this.start();
         }
@@ -254,6 +274,10 @@ class LyricsPlayer {
 
 
     start() {
+        // 防止重复启动
+        if (this.animationFrame) {
+            return;
+        }
         this.animate();
     }
 
@@ -280,7 +304,10 @@ class LyricsPlayer {
     }
 
     animate() {
+        // 只有当scrollWrapper不存在时才返回，即使页面不可见也继续计算
+        // 这样在页面重新显示时动画状态是最新的
         if (!this.scrollWrapper) return;
+        
         const currentTime = this.audio.currentTime * 1000;
         let activeLineFound = -1;
         let anyCharActive = false;
@@ -308,17 +335,24 @@ class LyricsPlayer {
                     const charStartTime = char.startTime;
                     const charEndTime = char.startTime + char.duration;
 
+                    // 仅在页面可见时更新DOM，但始终计算状态
                     if (currentTime >= charStartTime && currentTime <= charEndTime) {
-                        charElement.classList.add("active");
-                        charElement.classList.remove("completed");
+                        if (this.isVisible) {
+                            charElement.classList.add("active");
+                            charElement.classList.remove("completed");
+                        }
                         hasActiveChar = true;
                         anyCharActive = true;
                         allCompleted = false;
                     } else if (currentTime > charEndTime) {
-                        charElement.classList.remove("active");
-                        charElement.classList.add("completed");
+                        if (this.isVisible) {
+                            charElement.classList.remove("active");
+                            charElement.classList.add("completed");
+                        }
                     } else {
-                        charElement.classList.remove("active", "completed");
+                        if (this.isVisible) {
+                            charElement.classList.remove("active", "completed");
+                        }
                         allCompleted = false;
                     }
                 });
@@ -341,9 +375,10 @@ class LyricsPlayer {
         const effectiveActiveIndex = activeLineFound !== -1 ? activeLineFound : null;
         const effectivePreviousIndex = this.activeLineIndex !== -1 ? this.activeLineIndex : null;
 
-        // 判断是否需要更新行位置
-        if ((effectiveActiveIndex !== null && effectiveActiveIndex !== effectivePreviousIndex) || 
-            (!anyCharActive && effectivePreviousIndex !== null)) {
+        // 判断是否需要更新行位置，仅在页面可见时才更新DOM
+        if (this.isVisible && 
+            ((effectiveActiveIndex !== null && effectiveActiveIndex !== effectivePreviousIndex) || 
+            (!anyCharActive && effectivePreviousIndex !== null))) {
             
             // 记录上一个激活行
             if (effectiveActiveIndex !== null) {
@@ -358,6 +393,7 @@ class LyricsPlayer {
             this.updateLinePositions(activeLineFound, anyCharActive);
         }
 
+        // 保存animationFrame引用以便能够取消它
         this.animationFrame = requestAnimationFrame(() => this.animate());
     }
 
@@ -503,6 +539,66 @@ class LyricsPlayer {
         
         // 应用位置
         lineElement.style.top = `${position}px`;
+    }
+
+    initVisibilityObserver() {
+        // 监听容器尺寸变化
+        if (window.ResizeObserver) {
+            this.resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    // 检测高度变化，如果从0变为非0，表示页面重新显示
+                    if (entry.contentRect.height > 0 && !this.isVisible) {
+                        this.isVisible = true;
+                        // 延迟一点时间确保DOM已完全显示
+                        setTimeout(() => {
+                            this.refreshLayout();
+                            // 如果音频正在播放，确保动画也在运行
+                            if (!this.audio.paused && !this.animationFrame) {
+                                this.start();
+                            }
+                        }, 100);
+                    } else if (entry.contentRect.height === 0 && this.isVisible) {
+                        this.isVisible = false;
+                        // 页面隐藏时暂停动画但不取消
+                        // 注意：我们不调用stop()，因为那会取消animationFrame
+                    }
+                }
+            });
+            
+            // 观察歌词容器
+            this.resizeObserver.observe(this.lyricsContainer);
+            
+            // 观察父容器（player页面）
+            const playerPage = document.querySelector('.player');
+            if (playerPage) {
+                this.resizeObserver.observe(playerPage);
+            }
+        }
+        
+        // 当窗口尺寸改变时也刷新布局
+        window.addEventListener('resize', () => {
+            if (this.isVisible) {
+                this.refreshLayout();
+            }
+        });
+    }
+    
+    refreshLayout() {
+        // 如果没有活跃行但有解析数据，刷新初始视图
+        if (this.activeLineIndex === -1 && this.parsedData && this.parsedData.length > 0) {
+            this.setupInitialView();
+        } else if (this.activeLineIndex !== -1) {
+            // 如果有活跃行，更新行位置
+            this.updateLinePositions(this.activeLineIndex, true);
+        }
+        
+        // 标记我们已经显示了初始视图
+        this.initialViewDisplayed = true;
+        
+        // 如果音频正在播放但动画没有运行，则重新启动动画
+        if (!this.audio.paused && !this.animationFrame) {
+            this.start();
+        }
     }
 }
 

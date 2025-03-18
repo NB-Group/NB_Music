@@ -107,155 +107,249 @@ function getIconPath() {
         case "win32":
             return path.join(__dirname, "../icons/icon.ico");
         case "darwin":
-            return path.join(__dirname, "../icons/icon.icns");
+            return path.join(__dirname, "../icons/icon.png"); // 修改为使用 PNG 格式
         case "linux":
             return path.join(__dirname, "../icons/icon.png");
         default:
             return path.join(__dirname, "../icons/icon.png");
     }
 }
+
+// 创建托盘菜单
+function createTrayMenu(win) {
+    const iconPath = getIconPath();
+    const tray = new Tray(iconPath);
+    
+    // 初始化托盘状态
+    let isPlaying = false;
+    let currentSong = { title: "未在播放", artist: "" };
+    
+    // 更新托盘菜单
+    function updateTrayMenu() {
+        const songInfo = currentSong.artist 
+            ? `${currentSong.title} - ${currentSong.artist}` 
+            : currentSong.title;
+        
+        const menuTemplate = [
+            {
+                label: '🎵 NB Music',
+                enabled: false
+            },
+            { type: 'separator' },
+            {
+                label: songInfo,
+                enabled: false
+            },
+            { type: 'separator' },
+            {
+                label: isPlaying ? '暂停' : '播放',
+                click: () => {
+                    win.webContents.send('tray-control', 'play-pause');
+                }
+            },
+            {
+                label: '上一曲',
+                click: () => {
+                    win.webContents.send('tray-control', 'prev');
+                }
+            },
+            {
+                label: '下一曲',
+                click: () => {
+                    win.webContents.send('tray-control', 'next');
+                }
+            },
+            { type: 'separator' },
+            {
+                label: '显示主窗口',
+                click: () => {
+                    showWindow(win);
+                }
+            },
+            {
+                label: '设置',
+                click: () => {
+                    showWindow(win);
+                    win.webContents.send('tray-control', 'show-settings');
+                }
+            },
+            { type: 'separator' },
+            {
+                label: '检查更新',
+                click: () => {
+                    win.webContents.send('tray-control', 'check-update');
+                }
+            },
+            {
+                label: '关于',
+                click: () => {
+                    win.webContents.send('tray-control', 'about');
+                }
+            },
+            { type: 'separator' },
+            {
+                label: '退出',
+                click: () => {
+                    app.isQuitting = true;
+                    app.quit();
+                }
+            }
+        ];
+        
+        const contextMenu = Menu.buildFromTemplate(menuTemplate);
+        tray.setContextMenu(contextMenu);
+        
+        // 设置工具提示显示当前播放信息
+        tray.setToolTip(`NB Music - ${isPlaying ? '正在播放: ' : '已暂停: '}${songInfo}`);
+    }
+    
+    // 单击托盘图标显示窗口
+    tray.on("click", () => {
+        showWindow(win);
+    });
+    
+    // 监听来自渲染进程的托盘更新事件
+    ipcMain.on('update-tray', (_, data) => {
+        if (data.isPlaying !== undefined) isPlaying = data.isPlaying;
+        if (data.song) currentSong = data.song;
+        updateTrayMenu();
+    });
+    
+    // 初始化菜单
+    updateTrayMenu();
+    
+    return tray;
+}
+
+// 显示主窗口的辅助函数
+function showWindow(win) {
+    if (!win.isVisible()) {
+        win.show();
+    }
+    if (win.isMinimized()) {
+        win.restore();
+    }
+    win.focus();
+}
+
 function createWindow() {
-    // if (process.argv.includes('--clear-storage')) {
-    //     console.log('清除所有存储数据...');
-    //     // 清除 electron-store 存储
-    //     storage.clear();
-
-    //     // 清除 session 存储数据
-    //     session.defaultSession.clearStorageData({
-    //         storages: ['appcache', 'filesystem', 'indexdb', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage'],
-    //     }).then(() => {
-    //         console.log('存储数据已清除');
-    //     });
-    // }
-
     const gotTheLock = app.requestSingleInstanceLock();
     if (!gotTheLock) {
         app.quit();
-    } else {
-        const menu = Menu.buildFromTemplate([
-            {
-                id: 1,
-                type: "normal",
-                label: "退出",
-                click: () => {
-                    app.exit();
-                }
-            },
-            { id: 2, type: "normal", label: "关于" },
-            { id: 3, type: "normal", label: "配置" }
-        ]);
-        const tray = new Tray(getIconPath());
-        tray.setContextMenu(menu);
-        tray.setToolTip("NB Music");
-        tray.on("click", () => {
-            win.show();
-        });
-        const win = new BrowserWindow({
-            frame: false,
-            icon: getIconPath(),
-            backgroundColor: "#2f3241",
-            width: 1280,           // 添加合适的宽度
-            height: 800,           // 添加合适的高度
-            minWidth: 1280,         // 设置最小宽度
-            minHeight: 800,        // 设置最小高度
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                enableRemoteModule: true,
-                webSecurity: false // 禁用同源策略,允许跨域
-            }
-        });
-        setupAutoUpdater(win);
-        win.loadFile("src/main.html");
-        win.maximize(); 
-        // if (!app.isPackaged) {
-        // win.webContents.openDevTools();
-        // }
-        const cmdArgs = parseCommandLineArgs();
-        win.webContents.on('did-finish-load', () => {
-            win.webContents.send('command-line-args', cmdArgs);
-        });
-        ipcMain.on("window-minimize", () => {
-            win.minimize();
-        });
-
-        ipcMain.on("window-maximize", () => {
-            if (win.isMaximized()) {
-                win.unmaximize();
-            } else {
-                win.maximize();
-            }
-        });
-
-        ipcMain.on("window-close", () => {
-            win.hide();
-        });
-
-        ipcMain.on("open-dev-tools", () => {
-            if (!app.isPackaged) {
-                if (win.webContents.isDevToolsOpened()) {
-                    win.webContents.closeDevTools();
-                } else {
-                    win.webContents.openDevTools();
-                }
-            }
-        });
-        ipcMain.on('login-success', async (event, data) => {
-            try {
-                const { cookies } = data;
-                if (!cookies || cookies.length === 0) {
-                    throw new Error('未能获取到cookie');
-                }
-
-                // 直接保存cookie字符串
-                saveCookies(cookies.join(';'));
-
-                // 设置请求头
-                session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-                    if (details.url.includes("bilibili.com") ||
-                        details.url.includes("bilivideo.cn") ||
-                        details.url.includes("bilivideo.com")) {
-                        details.requestHeaders["Cookie"] = cookies.join(';');
-                        details.requestHeaders["referer"] = "https://www.bilibili.com/";
-                        details.requestHeaders["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
-                    }
-                    callback({ requestHeaders: details.requestHeaders });
-                });
-
-                win.webContents.send('cookies-set', true);
-
-            } catch (error) {
-                console.error('登录失败:', error);
-                win.webContents.send('cookies-set-error', error.message);
-            }
-        });
-        // 主进程
-        win.on("maximize", () => {
-            win.webContents.send("window-state-changed", true);
-        });
-
-        win.on("unmaximize", () => {
-            win.webContents.send("window-state-changed", false);
-        });
-
-        win.on("close", (e) => {
-            e.preventDefault();
-            win.hide();
-        });
-
-        win.on("unhandledrejection", (event) => {
-            console.warn("Unhandled rejection (reason):", event.reason);
-            event.preventDefault();
-        });
-        app.on("second-instance", () => {
-            // 当第二个实例运行时，这里会被触发
-            if (win) {
-                if (win.isMinimized()) win.restore();
-                win.focus();
-            }
-        });
+        return;
     }
+    
+    // 创建主窗口
+    const win = new BrowserWindow({
+        frame: false,
+        icon: getIconPath(),
+        backgroundColor: "#2f3241",
+        width: 1280,
+        height: 800,
+        minWidth: 1280,
+        minHeight: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            webSecurity: false
+        },
+        // 添加这些属性以改善窗口行为
+        show: false, // 先不显示，等内容加载完再显示
+        skipTaskbar: false
+    });
+    
+    // 创建托盘
+    const tray = createTrayMenu(win);
+    
+    // 当窗口准备好显示时才显示
+    win.once('ready-to-show', () => {
+        win.show();
+        win.focus();
+    });
+    
+    setupAutoUpdater(win);
+    win.loadFile("src/main.html");
+    win.maximize();
+    
+    if (!app.isPackaged) {
+        win.webContents.openDevTools();
+    }
+    const cmdArgs = parseCommandLineArgs();
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.send('command-line-args', cmdArgs);
+    });
+
+    // 处理第二个实例启动的情况
+    app.on("second-instance", (event, commandLine, workingDirectory) => {
+        // 如果主窗口存在，确保它被显示、恢复并获得焦点
+        if (win) {
+            if (!win.isVisible()) win.show();
+            if (win.isMinimized()) win.restore();
+            win.focus();
+            
+            // 可以解析第二个实例的命令行参数并处理
+            const secondInstanceArgs = parseCommandLineArgs(commandLine);
+            if (secondInstanceArgs.showWelcome) {
+                win.webContents.send('show-welcome');
+            }
+        }
+    });
+
+    // 设置应用退出标志
+    app.isQuitting = false;
+
+    // 修改窗口关闭行为
+    win.on("close", (e) => {
+        if (!app.isQuitting) {
+            e.preventDefault();
+            win.hide(); // 隐藏窗口而不是关闭
+            return false;
+        }
+    });
+    
+    ipcMain.on("window-minimize", () => {
+        win.minimize();
+    });
+
+    ipcMain.on("window-maximize", () => {
+        if (win.isMaximized()) {
+            win.unmaximize();
+        } else {
+            win.maximize();
+        }
+    });
+
+    ipcMain.on("window-close", () => {
+        win.hide(); // 修改为隐藏窗口
+    });
+    
+    ipcMain.on("quit-app", () => {
+        app.isQuitting = true;
+        app.quit();
+    });
+
+    // 窗口状态变化时通知渲染进程
+    win.on("maximize", () => {
+        win.webContents.send("window-state-changed", true);
+    });
+
+    win.on("unmaximize", () => {
+        win.webContents.send("window-state-changed", false);
+    });
+    
+    win.on("show", () => {
+        win.webContents.send("window-show");
+    });
+    
+    win.on("hide", () => {
+        win.webContents.send("window-hide");
+    });
+
+    // 返回窗口实例以便其他地方使用
+    return win;
 }
+
 function formatCookieString(cookies) {
     return cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join(";");
 }
@@ -266,8 +360,12 @@ app.whenReady().then(async () => {
             electron: path.join(process.cwd(), "node_modules", ".bin", "electron")
         });
     }
-    createWindow();
-    setupIPC(); 
+    
+    // 存储主窗口的引用
+    global.mainWindow = createWindow();
+    
+    setupIPC();
+    
     const cookieString = await getBilibiliCookies();
     if (cookieString) {
         session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
@@ -286,6 +384,10 @@ app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit();
     }
+});
+app.on('before-quit', () => {
+    // 标记应用正在退出，这样可以防止窗口的关闭事件被阻止
+    app.isQuitting = true;
 });
 if (!app.isPackaged) {
     electronReload(__dirname, {
@@ -322,5 +424,11 @@ function setupIPC() {
 
     ipcMain.on('open-external-link', (_, url) => {
         shell.openExternal(url);
+    });
+
+    // 添加退出应用的IPC处理
+    ipcMain.on('quit-application', () => {
+        app.isQuitting = true;
+        app.quit();
     });
 }

@@ -11,6 +11,17 @@
   height: 100%;
   overflow: hidden;
   position: relative; /* 添加相对定位以支持内部绝对定位元素 */
+  transition: opacity 0.3s ease; /* 添加过渡效果 */
+  /* 确保容器即使隐藏也保留尺寸信息 */
+  min-height: 300px;
+}
+
+/* 当父容器隐藏时保持歌词容器的布局 */
+.hide #lyrics-container {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
 }
 
 /* 歌词滚动容器基础样式 */
@@ -47,6 +58,11 @@
 /* 初始布局过渡效果 */
 .lyric-line.initial {
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 确保在父容器隐藏时保持行的位置 */
+.hide .lyric-line {
+  transition: none !important;
 }
 
 /* 隐藏的歌词行 */

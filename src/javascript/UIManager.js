@@ -25,6 +25,7 @@ class UIManager {
         this.initializeSearchSuggestions();
         this.initializeCustomSelects();
         this.initializeWelcomeDialog();
+        this.initializeTrayControls(); // 新增托盘控制初始化
     }
     initializeSearchSuggestions() {
         const searchInput = document.querySelector('.search input');
@@ -38,22 +39,28 @@ class UIManager {
         let suggestions = [];
         let debounceTimer;
 
+        // 辅助方法：清除搜索建议
+        const clearSuggestions = () => {
+            suggestionContainer.innerHTML = '';
+            suggestionContainer.classList.remove('active');
+            suggestions = [];
+            selectedIndex = -1;
+        };
+
         searchInput.addEventListener('input', async (e) => {
             clearTimeout(debounceTimer);
             selectedIndex = -1;
             const term = e.target.value.trim();
 
             if (!term) {
-                suggestionContainer.innerHTML = '';
-                suggestionContainer.classList.remove('active');
+                clearSuggestions();
                 return;
             }
 
             debounceTimer = setTimeout(async () => {
                 suggestions = await this.musicSearcher.getSearchSuggestions(term);
                 if (!suggestions.length) {
-                    suggestionContainer.innerHTML = '';
-                    suggestionContainer.classList.remove('active');
+                    clearSuggestions();
                 } else {
                     suggestionContainer.innerHTML = suggestions
                         .map(s => `
@@ -68,7 +75,6 @@ class UIManager {
 
         // 键盘事件处理
         searchInput.addEventListener('keydown', (e) => {
-
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
@@ -85,19 +91,17 @@ class UIManager {
                     if (selectedIndex >= 0) {
                         // 选中建议项
                         searchInput.value = suggestions[selectedIndex].value;
-                        suggestionContainer.innerHTML = '';
-                        suggestions = [];
                         // 触发搜索
                         this.handleSearch();
                     } else {
                         // 直接搜索输入内容
                         this.handleSearch();
                     }
+                    // 无论是哪种情况，都清除搜索建议
+                    clearSuggestions();
                     break;
                 case 'Escape':
-                    suggestionContainer.innerHTML = '';
-                    suggestions = [];
-                    selectedIndex = -1;
+                    clearSuggestions();
                     break;
             }
         });
@@ -119,8 +123,7 @@ class UIManager {
             const item = e.target.closest('.suggestion-item');
             if (item) {
                 searchInput.value = item.dataset.term;
-                suggestionContainer.innerHTML = '';
-                suggestions = [];
+                clearSuggestions();
                 this.handleSearch();
             }
         });
@@ -128,10 +131,7 @@ class UIManager {
         // 点击外部关闭建议框
         document.addEventListener('click', (e) => {
             if (!suggestionContainer.contains(e.target) && e.target !== searchInput) {
-                suggestionContainer.innerHTML = '';
-                suggestions = [];
-                selectedIndex = -1;
-                suggestionContainer.classList.remove('active');
+                clearSuggestions();
             }
         });
     }
@@ -403,6 +403,20 @@ class UIManager {
         const targetContent = document.querySelector(`.content ${pageName}`);
         if (targetContent) {
             targetContent.classList.remove("hide");
+            
+            // 如果切换到播放器页面，刷新歌词布局
+            if (pageName === '.player' && this.audioPlayer && this.audioPlayer.lyricsPlayer) {
+                // 延迟一点时间确保DOM已完全显示
+                setTimeout(() => {
+                    // 刷新布局并确保如果音乐在播放，动画会自动启动
+                    this.audioPlayer.lyricsPlayer.refreshLayout();
+                    
+                    // 如果音频正在播放但动画没有运行，明确启动它
+                    if (!this.audioPlayer.audio.paused && !this.audioPlayer.lyricsPlayer.animationFrame) {
+                        this.audioPlayer.lyricsPlayer.start();
+                    }
+                }, 100);
+            }
         }
 
         // 设置导航项选中状态
@@ -598,6 +612,14 @@ class UIManager {
         try {
             const keyword = document.querySelector(".search input").value;
             if (!keyword) return;
+            
+            // 确保执行搜索时也移除搜索建议
+            const suggestionContainer = document.querySelector('.suggestions');
+            if (suggestionContainer) {
+                suggestionContainer.innerHTML = '';
+                suggestionContainer.classList.remove('active');
+            }
+            
             this.musicSearcher.searchMusic(keyword);
         } catch (error) {
             this.showNotification('搜索失败: ' + error.message, 'error');
@@ -690,7 +712,21 @@ class UIManager {
                 break;
         }
 
-        div.querySelector(".name").textContent = displayTitle;
+        // 标题截断处理
+        const titleElement = div.querySelector(".name");
+        const maxLength = 25; // 最大显示字符数
+        
+        if (displayTitle && displayTitle.length > maxLength) {
+            // 截断标题并添加省略号
+            const truncatedTitle = displayTitle.substring(0, maxLength) + "...";
+            titleElement.textContent = truncatedTitle;
+            
+            // 添加title属性，以便用户悬停时可以看到完整标题
+            titleElement.title = displayTitle;
+        } else {
+            titleElement.textContent = displayTitle;
+        }
+        
         div.querySelector(".artist").textContent = song.artist;
         return div;
     }
@@ -964,6 +1000,99 @@ class UIManager {
             
             if (agreeCheckbox) agreeCheckbox.checked = false;
             if (agreeButton) agreeButton.disabled = true;
+        }
+    }
+
+    /**
+     * 初始化托盘控制相关功能
+     */
+    initializeTrayControls() {
+        // 监听来自托盘的控制命令
+        ipcRenderer.on('tray-control', (_, command) => {
+            switch(command) {
+                case 'play-pause':
+                    this.audioPlayer.play();
+                    break;
+                case 'next':
+                    this.audioPlayer.next();
+                    break;
+                case 'prev':
+                    this.audioPlayer.prev();
+                    break;
+                case 'show-settings':
+                    this.show('.setting');
+                    break;
+                case 'about':
+                    // 滚动到关于部分
+                    this.show('.setting');
+                    setTimeout(() => {
+                        const aboutCard = document.querySelector('.about-card');
+                        if (aboutCard) {
+                            aboutCard.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 100);
+                    break;
+                case 'check-update':
+                    document.getElementById('check-update')?.click();
+                    break;
+            }
+        });
+        
+        // 监听音频播放状态变化，更新托盘信息
+        this.audioPlayer.audio.addEventListener('play', () => this.updateTrayInfo());
+        this.audioPlayer.audio.addEventListener('pause', () => this.updateTrayInfo());
+        
+        // 修复：不再使用不存在的事件监听方法
+        // 监听歌曲切换时更新托盘信息 - 通过UIManager内部方法调用
+        this.songChangedHandler = () => this.updateTrayInfo();
+        
+        // 窗口显示/隐藏时也更新托盘
+        ipcRenderer.on('window-show', () => this.updateTrayInfo());
+        ipcRenderer.on('window-hide', () => this.updateTrayInfo());
+        
+        // 初始更新托盘
+        this.updateTrayInfo();
+        
+        // 监听来自主进程的显示欢迎页面的命令
+        ipcRenderer.on('show-welcome', () => {
+            this.showWelcomeDialog();
+        });
+    }
+    
+    /**
+     * 更新托盘显示信息
+     */
+    updateTrayInfo() {
+        try {
+            const isPlaying = !this.audioPlayer.audio.paused;
+            let song = { title: "未在播放", artist: "" };
+            
+            // 如果有正在播放的歌曲，获取其信息
+            if (this.playlistManager && this.playlistManager.playlist.length > 0) {
+                const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
+                if (currentSong) {
+                    // 根据提取标题的设置决定显示方式
+                    const titleMode = this.settingManager.getSetting('extractTitle');
+                    let displayTitle = currentSong.title;
+                    
+                    if (titleMode === 'on') {
+                        displayTitle = extractMusicTitle(currentSong.title);
+                    }
+                    
+                    song = {
+                        title: displayTitle || "未知歌曲",
+                        artist: currentSong.artist || "未知艺术家"
+                    };
+                }
+            }
+            
+            // 发送更新到主进程
+            ipcRenderer.send('update-tray', {
+                isPlaying,
+                song
+            });
+        } catch (error) {
+            console.error('更新托盘信息失败:', error);
         }
     }
 }

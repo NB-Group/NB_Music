@@ -73,11 +73,21 @@
   </div>
   <div class="dialog-bg hide" id="importDialog">
     <div class="dialog">
-      <h2>从B站收藏夹导入</h2>
+      <h2>从B站导入</h2>
       <div class="dialog-content">
         <div class="input-group">
-          <label for="favLink">收藏夹链接或ID:</label>
-          <input type="text" id="favLink" placeholder="输入收藏夹链接或ID">
+          <label for="importType">导入类型:</label>
+          <select id="importType">
+            <option value="fav">收藏夹</option>
+            <option value="season">合集</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="favLink" id="linkLabel">链接或ID:</label>
+          <input type="text" id="favLink" placeholder="输入链接或ID">
+          <div class="link-format-tip">支持的格式: 
+            <span class="format-example" id="formatExample">收藏夹ID或链接(fid=xxx)</span>
+          </div>
         </div>
         <div class="input-group">
           <label for="customLyricSearch">自定义歌词搜索:</label>
@@ -153,6 +163,87 @@
       </div>
     </div>
   </div>
+  
+  <!-- 视频播放器对话框 -->
+  <div class="dialog-bg hide" id="videoPlayerDialog">
+    <div class="dialog video-dialog">
+      <div class="dialog-header">
+        <h2>视频播放</h2>
+        <button class="close-btn" id="closeVideoDialog"><i class="bi bi-x"></i></button>
+      </div>
+      <div class="video-container">
+        <video id="videoPlayer" controls></video>
+        <div class="sync-indicator">
+          <i class="bi bi-arrow-repeat rotating"></i>
+          <span>与音频同步中</span>
+        </div>
+        <div class="video-overlay hide">
+          <div class="video-message">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>无可用视频</span>
+          </div>
+        </div>
+      </div>
+      <div class="video-info">
+        <div class="video-title" id="videoTitle"></div>
+        <div class="video-controls">
+          <button id="fullscreenVideo"><i class="bi bi-fullscreen"></i></button>
+          <button id="pipVideo"><i class="bi bi-picture-in-picture"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 本地导入对话框 -->
+  <div class="dialog-bg hide" id="localImportDialog">
+    <div class="dialog">
+      <h2>本地文件导入</h2>
+      <div class="dialog-content">
+        <div class="file-dropzone" id="fileDropzone">
+          <i class="bi bi-cloud-arrow-up"></i>
+          <p>拖放音乐文件到这里<br>或点击选择文件</p>
+          <input type="file" id="localAudioInput" accept="audio/*" class="file-input" />
+        </div>
+        
+        <div class="import-form">
+          <div class="input-group">
+            <label for="localSongTitle">歌曲名称:</label>
+            <input type="text" id="localSongTitle" placeholder="请输入歌曲名称">
+          </div>
+          
+          <div class="input-group">
+            <label for="localArtist">艺术家:</label>
+            <input type="text" id="localArtist" placeholder="请输入艺术家名称">
+          </div>
+          
+          <div class="media-selectors">
+            <div class="media-selector">
+              <label for="localCoverInput">封面图片:</label>
+              <div class="media-preview" id="coverPreview">
+                <i class="bi bi-image"></i>
+              </div>
+              <button class="select-media-btn" id="selectCoverBtn">选择封面</button>
+              <input type="file" id="localCoverInput" accept="image/*" class="file-input" />
+            </div>
+            
+            <div class="media-selector">
+              <label for="localVideoInput">背景视频:</label>
+              <div class="media-preview" id="videoPreview">
+                <i class="bi bi-film"></i>
+              </div>
+              <button class="select-media-btn" id="selectVideoBtn">选择视频</button>
+              <input type="file" id="localVideoInput" accept="video/*" class="file-input" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button id="cancelLocalImport" class="dialog-btn dialog-btn-secondary">取消</button>
+        <button id="confirmLocalImport" class="dialog-btn dialog-btn-primary">导入</button>
+      </div>
+    </div>
+  </div>
+
   <div class="mica">
     <div class="a dock theme dk" data-descp="hide">
       <svg viewBox="0,0,307,307" class="light" xmlns="http://www.w3.org/2000/svg"
@@ -247,6 +338,8 @@
                 </div>
               </div>
               <button class="import-btn"><i class="bi bi-download"></i></button>
+              <button class="play-video-btn import-btn" id="playVideoBtn"><i class="bi bi-film"></i></button>
+              <!-- <button class="local-import-btn import-btn" id="localImportBtn"><i class="bi bi-file-earmark-music"></i></button> -->
             </div>
 
             <div class="progress">
