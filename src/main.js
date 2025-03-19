@@ -9,8 +9,10 @@ const storage = new Storage();
 function parseCommandLineArgs() {
     const args = process.argv.slice(1);
     const showWelcomeArg = args.includes('--show-welcome');
+    const noCookiesArg = args.includes('--no-cookies'); // 添加新参数检测
     return {
-        showWelcome: showWelcomeArg
+        showWelcome: showWelcomeArg,
+        noCookies: noCookiesArg  // 返回新参数状态
     };
 }
 function setupAutoUpdater(win) {
@@ -79,10 +81,12 @@ function saveCookies(cookieString) {
     storage.set("cookies", cookieString);
 }
 
-async function getBilibiliCookies() {
-    const cachedCookies = loadCookies();
-    if (cachedCookies) {
-        return cachedCookies;
+async function getBilibiliCookies(skipLocalCookies = false) {
+    if (!skipLocalCookies) {
+        const cachedCookies = loadCookies();
+        if (cachedCookies) {
+            return cachedCookies;
+        }
     }
     try {
         const browser = await puppeteer.launch({
@@ -107,7 +111,7 @@ function getIconPath() {
         case "win32":
             return path.join(__dirname, "../icons/icon.ico");
         case "darwin":
-            return path.join(__dirname, "../icons/icon.png"); // 修改为使用 PNG 格式
+            return path.join(__dirname, "../icons/icon.png"); 
         case "linux":
             return path.join(__dirname, "../icons/icon.png");
         default:
@@ -346,6 +350,47 @@ function createWindow() {
         win.webContents.send("window-hide");
     });
 
+    // 添加新的login-success处理
+    ipcMain.on('login-success', async (event, data) => {
+        try {
+            const { cookies } = data;
+            if (!cookies || cookies.length === 0) {
+                throw new Error('未能获取到cookie');
+            }
+
+            // 直接保存cookie字符串
+            saveCookies(cookies.join(';'));
+
+            // 设置请求头
+            session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+                if (details.url.includes("bilibili.com") ||
+                    details.url.includes("bilivideo.cn") ||
+                    details.url.includes("bilivideo.com")) {
+                    details.requestHeaders["Cookie"] = cookies.join(';');
+                    details.requestHeaders["referer"] = "https://www.bilibili.com/";
+                    details.requestHeaders["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
+                }
+                callback({ requestHeaders: details.requestHeaders });
+            });
+
+            win.webContents.send('cookies-set', true);
+
+        } catch (error) {
+            console.error('登录失败:', error);
+            win.webContents.send('cookies-set-error', error.message);
+        }
+    });
+
+    ipcMain.on("open-dev-tools", () => {
+        if (!app.isPackaged) {
+            if (win.webContents.isDevToolsOpened()) {
+                win.webContents.closeDevTools();
+            } else {
+                win.webContents.openDevTools();
+            }
+        }
+    });
+
     // 返回窗口实例以便其他地方使用
     return win;
 }
@@ -365,8 +410,9 @@ app.whenReady().then(async () => {
     global.mainWindow = createWindow();
     
     setupIPC();
-    
-    const cookieString = await getBilibiliCookies();
+    const cmdArgs = parseCommandLineArgs();
+
+    const cookieString = await getBilibiliCookies(cmdArgs.noCookies);
     if (cookieString) {
         session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
             if (details.url.includes("bilibili.com") ||
