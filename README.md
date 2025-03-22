@@ -154,8 +154,8 @@ graph TD
 ```
 
 ### 贡献指南
-1. 克隆仓库后执行 `yarn add --magic`（开玩笑的，正常add就好）
-2. 调试主进程：`yarn run electron:debug`
+1. 克隆仓库后执行 `yarn install --magic`（开玩笑的，正常install就好）
+2. 调试主进程：`yarn run debug`
 3. 直接运行: `yarn run run`
 4. 打包: `yarn run build`
 5. 代码规范：
