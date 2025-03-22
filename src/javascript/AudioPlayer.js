@@ -181,7 +181,7 @@ class AudioPlayer {
 
     async play() {
         try {
-            if (!this.audio.src) {
+            if (!this.audio.getAttribute('src')) {
                 if (this.uimanager) {
                     this.uimanager.showNotification("无音频链接", "warning");
                 }

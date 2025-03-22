@@ -646,6 +646,7 @@ class MusiclistManager {
 
         this.renderPlaylistList();
         this.renderSongList();
+        this.playlistManager.shuffledlist = [];
     }
     async importFromBiliFav(mediaId) {
         let importNotification = null;
