@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilibili 登录</title>
+    <style>
+        @font-face {
+            font-family: 'HarmonyOS_Sans';
+            src: url('/HarmonyOS_Sans.woff') format('woff')
+        }
+
+        * {
+            font-family: HarmonyOS_Sans, Arial, serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('/background.jpg'); /* 设置背景图片 */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .rectangle {
+            width: 500px;
+            height: 245px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px); /* 高斯模糊效果 */
+            transition: filter 0.3s ease;
+            background: rgb(217 226 234 / 0.5);
+        }
+
+        #userInfo {
+            margin-top: 50px;
+            padding: 0.3733rem 0.32rem;
+            border-radius: 0.1067rem;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            -moz-box-pack: justify;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+        }
+
+        #userInfo .user_right {
+            display: flex;
+            margin-left: 120px;
+        }
+
+        #userInfo .user_info {
+            margin-left: 25px;
+        }
+
+        #userInfo .user_avatar {
+            width: 59px;
+            height: 59px;
+            margin-top: 3px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        #userInfo #user_name {
+            font-size: 18px;
+            line-height: 0.48rem;
+        }
+
+        #userInfo #user_mid {
+            font-size: 14px;
+            line-height: 0.48rem;
+            color: #9499a0;
+        }
+
+        button {
+            display: block; /* 按钮独占一行 */
+            margin-top: 30px;
+            width: 80%; /* 按钮宽度占满父元素 */
+            padding: 10px; /* 内边距 */
+            font-size: 16px; /* 字体大小 */
+            color: white; /* 文字颜色 */
+            margin-left: 10%;
+            background-color: rgb(0, 161, 214); /* 背景色为主题色 */
+            border: none; /* 无边框 */
+            border-radius: 5px; /* 圆角 */
+            cursor: pointer; /* 鼠标悬停时变为小手 */
+            transition: background-color 0.3s ease; /* 背景色过渡效果 */
+        }
+
+        button:hover {
+            background-color: rgb(0, 141, 194); /* 鼠标悬停时背景色变为深色 */
+        }
+
+        a {
+            font-weight: bold; /* 链接字体加粗 */
+            transition: color 0.3s ease; /* 文字颜色过渡效果 */
+            text-decoration: none; /* 去除链接下划线 */
+            color: #3e88f6; /* 链接文字颜色 */
+        }
+
+        a:hover {
+            color: #39a9ff; /* 链接文字颜色 */
+        }
+
+        #notLoginMessage {
+            margin-left: 30%;
+            margin-top: 20%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="rectangle">
+    <p id="notLoginMessage">你还没登录B站呢，快去<a href="https://passport.bilibili.com/login">登录</a>！</p>
+    <div id="userInfo">
+        <div class="user_right">
+            <div class="user_avatar">
+                <img id="avatar" style="width: 100%;" src="" alt="">
+            </div>
+            <div class="user_info">
+                <p id="user_name"></p>
+                <p id="user_mid"></p>
+            </div>
+        </div>
+    </div>
+    <button id="loginButton">登录</button>
+</div>
+<script>
+    const avatar = document.getElementById('avatar');
+    const user_name = document.getElementById('user_name');
+    const user_mid = document.getElementById('user_mid');
+    const notLoginMessage = document.getElementById('notLoginMessage');
+    const userInfo = document.getElementById('userInfo');
+    const loginButton = document.getElementById('loginButton');
+
+    fetch('/getUserInfo').then(res => res.json()).then(data => {
+        if (data.data.isLogin) {
+            avatar.src = data.data.avatar;
+            avatar.alt = data.data.name;
+            user_name.textContent = data.data.name;
+            user_mid.textContent = `UID: ${data.data.mid}`;
+        } else {
+            notLoginMessage.style.display = 'block';
+            userInfo.style.display = 'none';
+            loginButton.style.display = 'block';
+        }
+    });
+
+    loginButton.addEventListener('click', () => {
+        fetch('/callback').then(res => {
+            loginButton.textContent = '登录成功';
+            window.location.href = 'about:blank';
+        });
+    });
+</script>
+</body>
+</html>
