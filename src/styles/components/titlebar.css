@@ -109,8 +109,18 @@
   padding: 8px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-}
+  margin: 6px;
+  border-radius: 8px;
 
+  .suggest_high_light {
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, var(--theme-1), var(--theme-2));
+    background-clip: text;
+    font-style: normal;
+    -webkit-background-clip: text;
+  }
+}
+suggestion
 .suggestion-item:hover,
 .selected {
   background: var(--rgba-16);

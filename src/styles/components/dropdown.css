@@ -82,6 +82,8 @@
     transition: all 0.15s ease;
     display: flex;
     align-items: center;
+    border-radius: 8px;
+    margin: 6px;
 }
 
 .select-item:before {
@@ -99,7 +101,7 @@
 }
 
 .select-item:hover:before {
-    width: 3px;
+    /* width: 3px; */
 }
 
 .select-item.selected {}

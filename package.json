@@ -53,7 +53,7 @@
     },
     "build": {
         "artifactName": "${name}-v${version}-${os}-${arch}.${ext}",
-        "productName": "NB Music",
+        "productName": "NB-Music",
         "directories": {
             "output": "dist"
         },

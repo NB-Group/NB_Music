@@ -3,6 +3,16 @@
   display: none !important;
 }
 
+/* 淡入淡出 */
+.fadein {
+  transition: opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.fadeout {
+  opacity: 0 !important;
+}
+
 /* 滚动条样式 */
 ::-webkit-scrollbar:hover {
   background-color: var(--card);

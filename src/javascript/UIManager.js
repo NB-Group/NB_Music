@@ -28,11 +28,11 @@ class UIManager {
         this.initializeTrayControls(); // 新增托盘控制初始化
     }
     initializeSearchSuggestions() {
-        const searchInput = document.querySelector('.search input');
+        const searchInput = document.querySelector(".search input");
         if (!searchInput) return;
 
-        const suggestionContainer = document.createElement('div');
-        suggestionContainer.classList.add('suggestions');
+        const suggestionContainer = document.createElement("div");
+        suggestionContainer.classList.add("suggestions");
         document.querySelector(".loading").parentNode.appendChild(suggestionContainer);
 
         let selectedIndex = -1;
@@ -41,13 +41,13 @@ class UIManager {
 
         // 辅助方法：清除搜索建议
         const clearSuggestions = () => {
-            suggestionContainer.innerHTML = '';
-            suggestionContainer.classList.remove('active');
+            suggestionContainer.innerHTML = "";
+            suggestionContainer.classList.remove("active");
             suggestions = [];
             selectedIndex = -1;
         };
 
-        searchInput.addEventListener('input', async (e) => {
+        searchInput.addEventListener("input", async (e) => {
             clearTimeout(debounceTimer);
             selectedIndex = -1;
             const term = e.target.value.trim();
@@ -63,30 +63,33 @@ class UIManager {
                     clearSuggestions();
                 } else {
                     suggestionContainer.innerHTML = suggestions
-                        .map(s => `
+                        .map(
+                            (s) => `
                             <div class="suggestion-item" data-term="${s.value}">
                                 ${s.name}
                             </div>
-                        `).join('');
-                    suggestionContainer.classList.add('active');
+                        `
+                        )
+                        .join("");
+                    suggestionContainer.classList.add("active");
                 }
             }, 20);
         });
 
         // 键盘事件处理
-        searchInput.addEventListener('keydown', (e) => {
+        searchInput.addEventListener("keydown", (e) => {
             switch (e.key) {
-                case 'ArrowDown':
+                case "ArrowDown":
                     e.preventDefault();
                     selectedIndex = (selectedIndex + 1) % suggestions.length;
                     updateSelection();
                     break;
-                case 'ArrowUp':
+                case "ArrowUp":
                     e.preventDefault();
                     selectedIndex = selectedIndex <= 0 ? suggestions.length - 1 : selectedIndex - 1;
                     updateSelection();
                     break;
-                case 'Enter':
+                case "Enter":
                     e.preventDefault();
                     if (selectedIndex >= 0) {
                         // 选中建议项
@@ -100,7 +103,7 @@ class UIManager {
                     // 无论是哪种情况，都清除搜索建议
                     clearSuggestions();
                     break;
-                case 'Escape':
+                case "Escape":
                     clearSuggestions();
                     break;
             }
@@ -108,19 +111,19 @@ class UIManager {
 
         // 更新选中状态
         const updateSelection = () => {
-            const items = suggestionContainer.querySelectorAll('.suggestion-item');
+            const items = suggestionContainer.querySelectorAll(".suggestion-item");
             items.forEach((item, index) => {
                 if (index === selectedIndex) {
-                    item.classList.add('selected');
+                    item.classList.add("selected");
                 } else {
-                    item.classList.remove('selected');
+                    item.classList.remove("selected");
                 }
             });
         };
 
         // 点击建议项
-        suggestionContainer.addEventListener('click', (e) => {
-            const item = e.target.closest('.suggestion-item');
+        suggestionContainer.addEventListener("click", (e) => {
+            const item = e.target.closest(".suggestion-item");
             if (item) {
                 searchInput.value = item.dataset.term;
                 clearSuggestions();
@@ -129,7 +132,7 @@ class UIManager {
         });
 
         // 点击外部关闭建议框
-        document.addEventListener('click', (e) => {
+        document.addEventListener("click", (e) => {
             if (!suggestionContainer.contains(e.target) && e.target !== searchInput) {
                 clearSuggestions();
             }
@@ -139,15 +142,19 @@ class UIManager {
         // 替换原有的速度选择下拉框实现
         const speedControl = document.querySelector(".speed-control");
         if (speedControl) {
-            this.createCustomSelect(speedControl, [
-                { value: "0.5", text: "0.5x" },
-                { value: "1", text: "1x", selected: true },
-                { value: "1.25", text: "1.25x" },
-                { value: "1.5", text: "1.5x" },
-                { value: "2", text: "2x" }
-            ], (value) => {
-                this.audioPlayer.audio.playbackRate = parseFloat(value);
-            });
+            this.createCustomSelect(
+                speedControl,
+                [
+                    { value: "0.5", text: "0.5x" },
+                    { value: "1", text: "1x", selected: true },
+                    { value: "1.25", text: "1.25x" },
+                    { value: "1.5", text: "1.5x" },
+                    { value: "2", text: "2x" }
+                ],
+                (value) => {
+                    this.audioPlayer.audio.playbackRate = parseFloat(value);
+                }
+            );
         }
 
         // 为自定义速度选择下拉框添加事件监听
@@ -155,38 +162,38 @@ class UIManager {
         if (speedControlWrapper) {
             const selectItems = speedControlWrapper.querySelectorAll(".select-item");
             const selectSelected = speedControlWrapper.querySelector(".select-selected");
-            
+
             // 点击选中区域时切换下拉框显示状态
-            selectSelected.addEventListener('click', (e) => {
+            selectSelected.addEventListener("click", (e) => {
                 e.stopPropagation();
-                
+
                 // 关闭其他所有已打开的下拉框
-                document.querySelectorAll('.select-selected.open').forEach(el => {
+                document.querySelectorAll(".select-selected.open").forEach((el) => {
                     if (el !== selectSelected) {
-                        el.classList.remove('open');
-                        el.nextElementSibling.classList.remove('open');
+                        el.classList.remove("open");
+                        el.nextElementSibling.classList.remove("open");
                     }
                 });
-                
+
                 // 切换当前下拉框状态
-                selectSelected.classList.toggle('open');
-                selectSelected.nextElementSibling.classList.toggle('open');
+                selectSelected.classList.toggle("open");
+                selectSelected.nextElementSibling.classList.toggle("open");
             });
-            
+
             // 为每个选项添加点击事件
-            selectItems.forEach(item => {
-                item.addEventListener('click', (e) => {
+            selectItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    
+
                     // 更新UI
-                    selectItems.forEach(el => el.classList.remove('selected'));
-                    item.classList.add('selected');
+                    selectItems.forEach((el) => el.classList.remove("selected"));
+                    item.classList.add("selected");
                     selectSelected.textContent = item.textContent;
-                    
+
                     // 关闭下拉框
-                    selectSelected.classList.remove('open');
-                    selectSelected.nextElementSibling.classList.remove('open');
-                    
+                    selectSelected.classList.remove("open");
+                    selectSelected.nextElementSibling.classList.remove("open");
+
                     // 设置播放速度
                     const value = item.dataset.value;
                     if (value && this.audioPlayer) {
@@ -194,11 +201,11 @@ class UIManager {
                     }
                 });
             });
-            
+
             // 点击页面其他区域时关闭下拉框
-            document.addEventListener('click', () => {
-                selectSelected.classList.remove('open');
-                selectSelected.nextElementSibling.classList.remove('open');
+            document.addEventListener("click", () => {
+                selectSelected.classList.remove("open");
+                selectSelected.nextElementSibling.classList.remove("open");
             });
         }
 
@@ -207,108 +214,107 @@ class UIManager {
             try {
                 const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
                 if (!currentSong) {
-                    this.showNotification('没有可下载的音乐', 'error');
+                    this.showNotification("没有可下载的音乐", "error");
                     return;
                 }
-        
+
                 // 显示加载提示
-                this.showNotification('正在准备下载...', 'info');
-        
+                this.showNotification("正在准备下载...", "info");
+
                 // 获取最新的音频URL
                 const audioUrl = currentSong.audio;
                 if (!audioUrl) {
-                    throw new Error('无法获取音频链接');
+                    throw new Error("无法获取音频链接");
                 }
-        
+
                 // 使用 fetch 下载音频文件
                 const response = await fetch(audioUrl);
                 if (!response.ok) {
-                    throw new Error('下载失败');
+                    throw new Error("下载失败");
                 }
-        
+
                 // 获取音频数据
                 const blob = await response.blob();
-                
+
                 // 创建下载链接
                 const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
+                const a = document.createElement("a");
                 // 清理文件名，移除非法字符
-                const fileName = currentSong.title.replace(/[<>:"/\\|?*]+/g, '_');
+                const fileName = currentSong.title.replace(/[<>:"/\\|?*]+/g, "_");
                 a.download = `${fileName}.mp3`; // 使用 .mp3 扩展名
                 a.href = url;
-                
+
                 // 触发下载
                 document.body.appendChild(a);
                 a.click();
-                
+
                 // 清理
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-        
-                this.showNotification('开始下载音乐', 'success');
-        
+
+                this.showNotification("开始下载音乐", "success");
             } catch (error) {
                 console.error("下载失败:", error);
-                this.showNotification('下载失败: ' + error.message, 'error');
+                this.showNotification("下载失败: " + error.message, "error");
             }
         });
     }
     initializeSettings() {
         // 监听歌词显示设置变更
-        this.settingManager.addListener('lyricsEnabled', (newValue) => {
+        this.settingManager.addListener("lyricsEnabled", (newValue) => {
             if (this.lyricsPlayer) {
-                this.lyricsPlayer.setVisibility(newValue === 'true');
+                this.lyricsPlayer.setVisibility(newValue === "true");
             }
         });
         // 主题切换事件
-        this.settingManager.addListener('theme', (newValue, oldValue) => {
-            if (newValue == 'auto') {
-                newValue = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        this.settingManager.addListener("theme", (newValue, oldValue) => {
+            if (newValue == "auto") {
+                newValue = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
             }
-            document.querySelector('html').classList.remove(oldValue);
-            document.querySelector('html').classList.add(newValue);
+            document.querySelector("html").classList.remove(oldValue);
+            document.querySelector("html").classList.add(newValue);
         });
 
         // 背景切换事件
-        this.settingManager.addListener('background', async (newValue, oldValue) => {
-            if (newValue === 'none') {
-                const oldVideo = document.querySelector('video');
+        this.settingManager.addListener("background", async (newValue, oldValue) => {
+            if (newValue === "none") {
+                const oldVideo = document.querySelector("video");
                 if (oldVideo) oldVideo.remove();
-                document.querySelector('html').style.removeProperty('--bgul');
+                document.querySelector("html").style.removeProperty("--bgul");
             }
-            if (newValue === 'cover') {
-                const oldVideo = document.querySelector('video');
+            if (newValue === "cover") {
+                const oldVideo = document.querySelector("video");
                 if (oldVideo) oldVideo.remove();
                 const savedPlaylist = localStorage.getItem("nbmusic_playlist");
                 const currentSong = JSON.parse(savedPlaylist)[localStorage.getItem("nbmusic_playing_now") || 0];
-                document.querySelector('html').style.setProperty('--bgul', `url(${currentSong.poster})`);
+                document.querySelector("html").style.setProperty("--bgul", `url(${currentSong.poster})`);
             }
-            if (newValue === 'video' && oldValue !== 'video') {
+            if (newValue === "video" && oldValue !== "video") {
                 // 移除旧视频
-                const oldVideo = document.querySelector('video');
+                const oldVideo = document.querySelector("video");
                 if (oldVideo) oldVideo.remove();
                 const savedPlaylist = localStorage.getItem("nbmusic_playlist");
 
-                const currentSong = JSON.parse(savedPlaylist)[localStorage.getItem("nbmusic_playing_now") || 0];                const videoUrl = currentSong.video;
+                const currentSong = JSON.parse(savedPlaylist)[localStorage.getItem("nbmusic_playing_now") || 0];
+                const videoUrl = currentSong.video;
                 if (videoUrl) {
-                    const video = document.createElement('video');
+                    const video = document.createElement("video");
                     video.autoplay = true;
                     video.loop = true;
                     video.muted = true;
-                    video.style.position = 'absolute';
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.zIndex = '-1';
-                    video.style.bottom = '0';
-                    video.style.objectFit = 'cover';
+                    video.style.position = "absolute";
+                    video.style.width = "100%";
+                    video.style.height = "100%";
+                    video.style.zIndex = "-1";
+                    video.style.bottom = "0";
+                    video.style.objectFit = "cover";
                     video.src = videoUrl;
 
-                    document.querySelector('body').appendChild(video);
+                    document.querySelector("body").appendChild(video);
                 }
-
             }
         });
-        this.settingManager.addListener('extractTitle', (newValue, oldValue) => {
+        this.settingManager.addListener("extractTitle", (newValue, oldValue) => {
             this.renderPlaylist();
         });
 
@@ -403,14 +409,14 @@ class UIManager {
         const targetContent = document.querySelector(`.content ${pageName}`);
         if (targetContent) {
             targetContent.classList.remove("hide");
-            
+
             // 如果切换到播放器页面，刷新歌词布局
-            if (pageName === '.player' && this.audioPlayer && this.audioPlayer.lyricsPlayer) {
+            if (pageName === ".player" && this.audioPlayer && this.audioPlayer.lyricsPlayer) {
                 // 延迟一点时间确保DOM已完全显示
                 setTimeout(() => {
                     // 刷新布局并确保如果音乐在播放，动画会自动启动
                     this.audioPlayer.lyricsPlayer.refreshLayout();
-                    
+
                     // 如果音频正在播放但动画没有运行，明确启动它
                     if (!this.audioPlayer.audio.paused && !this.audioPlayer.lyricsPlayer.animationFrame) {
                         this.audioPlayer.lyricsPlayer.start();
@@ -439,7 +445,8 @@ class UIManager {
             }
 
             // 空格键控制播放/暂停
-            if (e.key === " " && e.target.tagName !== "INPUT") { // 避免在输入框中按空格触发
+            if (e.key === " " && e.target.tagName !== "INPUT") {
+                // 避免在输入框中按空格触发
                 e.preventDefault(); // 阻止页面滚动
                 this.audioPlayer.play();
             }
@@ -482,14 +489,22 @@ class UIManager {
         });
 
         // 侧边栏点击事件
-        document.addEventListener("click", (event) => {
-            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar")) {
-                document.querySelector(".sidebar").classList.add("hide");
+        document.addEventListener("dblclick", (event) => {
+            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar")
+                 && this.settingManager.getSetting('hideSidebar')=="true") {
+                document.querySelector(".sidebar").classList.add("fadeout");
+            }
+            if (!event.target.closest(".titbar") && this.settingManager.getSetting('hideTitbar')=="true") {
+               document.querySelectorAll(".titbar .fadein").forEach((fadeItem) => {
+                fadeItem.classList.add("fadeout");
+               })
             }
         });
 
-        document.querySelector(".sidebar").addEventListener("mouseover", () => {
-            document.querySelector(".sidebar").classList.remove("hide");
+        document.querySelectorAll(".fadein").forEach((fadeItem) => {
+            fadeItem.addEventListener("mouseover", () => {
+                fadeItem.classList.remove("fadeout");
+            })
         });
 
         // 列表焦点效果
@@ -524,51 +539,51 @@ class UIManager {
             });
         });
 
-        document.querySelectorAll('nav').forEach(nav => {
+        document.querySelectorAll("nav").forEach((nav) => {
             // 生成唯一标识
             const navId = nav.dataset.navId || `nav-${Math.random().toString(36).slice(2, 6)}`;
             nav.dataset.navId = navId;
 
-            nav.querySelectorAll('a').forEach(link => {
+            nav.querySelectorAll("a").forEach((link) => {
                 // 添加波纹效果处理
-                link.addEventListener('mousedown', function(e) {
+                link.addEventListener("mousedown", function (e) {
                     // 创建波纹元素
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple-effect');
-                    
+                    const ripple = document.createElement("span");
+                    ripple.classList.add("ripple-effect");
+
                     // 计算最大尺寸
                     const size = Math.max(this.offsetWidth, this.offsetHeight);
                     ripple.style.width = ripple.style.height = `${size * 2}px`;
-                    
+
                     // 定位波纹
                     const rect = this.getBoundingClientRect();
                     ripple.style.left = `${e.clientX - rect.left - size}px`;
                     ripple.style.top = `${e.clientY - rect.top - size}px`;
-                    
+
                     // 添加波纹元素
                     this.appendChild(ripple);
-                    
+
                     // 动画结束后移除
                     setTimeout(() => ripple.remove(), 600);
                 });
 
-                link.addEventListener('click', async (e) => {
+                link.addEventListener("click", async (e) => {
                     e.preventDefault();
 
                     // 检查浏览器是否支持 View Transitions API
                     if (!document.startViewTransition) {
-                        console.warn('Browser does not support View Transitions API');
+                        console.warn("Browser does not support View Transitions API");
                         // 降级处理
-                        const activeLink = nav.querySelector('.active');
-                        activeLink?.classList.remove('active');
-                        link.classList.add('active');
+                        const activeLink = nav.querySelector(".active");
+                        activeLink?.classList.remove("active");
+                        link.classList.add("active");
                         return;
                     }
 
                     // 避免重复点击
-                    if (link.classList.contains('active')) return;
+                    if (link.classList.contains("active")) return;
 
-                    const activeLink = nav.querySelector('.active');
+                    const activeLink = nav.querySelector(".active");
 
                     try {
                         // 设置动态 view-transition-name
@@ -578,26 +593,26 @@ class UIManager {
                         link.style.viewTransitionName = `${navId}-new`;
 
                         const transition = document.startViewTransition(() => {
-                            activeLink?.classList.remove('active');
-                            link.classList.add('active');
-                            
+                            activeLink?.classList.remove("active");
+                            link.classList.add("active");
+
                             // 在导航变化时触发一个微妙的缩放动画
-                            nav.style.transform = 'scale(0.98)';
+                            nav.style.transform = "scale(0.98)";
                             setTimeout(() => {
-                                nav.style.transform = 'scale(1)';
+                                nav.style.transform = "scale(1)";
                             }, 150);
                         });
 
                         // 等待过渡完成
                         await transition.finished;
                     } catch (error) {
-                        console.error('View transition failed:', error);
+                        console.error("View transition failed:", error);
                     } finally {
                         // 清理 view-transition-name
                         if (activeLink) {
-                            activeLink.style.viewTransitionName = '';
+                            activeLink.style.viewTransitionName = "";
                         }
-                        link.style.viewTransitionName = '';
+                        link.style.viewTransitionName = "";
                     }
                 });
             });
@@ -612,17 +627,17 @@ class UIManager {
         try {
             const keyword = document.querySelector(".search input").value;
             if (!keyword) return;
-            
+
             // 确保执行搜索时也移除搜索建议
-            const suggestionContainer = document.querySelector('.suggestions');
+            const suggestionContainer = document.querySelector(".suggestions");
             if (suggestionContainer) {
-                suggestionContainer.innerHTML = '';
-                suggestionContainer.classList.remove('active');
+                suggestionContainer.innerHTML = "";
+                suggestionContainer.classList.remove("active");
             }
-            
+
             this.musicSearcher.searchMusic(keyword);
         } catch (error) {
-            this.showNotification('搜索失败: ' + error.message, 'error');
+            this.showNotification("搜索失败: " + error.message, "error");
         }
     }
 
@@ -683,31 +698,33 @@ class UIManager {
                 <div class="artist"></div>
             </div>
             <div class="controls">
-                ${isLove
-                ? `<div class="love">
+                ${
+                    isLove
+                        ? `<div class="love">
                     <i class="bi bi-heart${isLoved ? "-fill" : ""} ${isLoved ? "loved" : ""}"></i>
                 </div>`
-                : ""
-            }
-                ${isDelete
-                ? `<div class="delete">
+                        : ""
+                }
+                ${
+                    isDelete
+                        ? `<div class="delete">
                     <i class="bi bi-trash"></i>
                 </div>`
-                : ""
-            }
+                        : ""
+                }
             </div>`;
         div.querySelector(".poster").src = song.poster;
-        const titleMode = this.settingManager.getSetting('extractTitle');
+        const titleMode = this.settingManager.getSetting("extractTitle");
         let displayTitle = song.title;
 
         switch (titleMode) {
-            case 'on':
+            case "on":
                 displayTitle = extractMusicTitle(song.title);
                 break;
-            case 'auto':
-                div.setAttribute('data-title-mode', 'auto');
+            case "auto":
+                div.setAttribute("data-title-mode", "auto");
                 break;
-            case 'off':
+            case "off":
             default:
                 break;
         }
@@ -715,18 +732,18 @@ class UIManager {
         // 标题截断处理
         const titleElement = div.querySelector(".name");
         const maxLength = 25; // 最大显示字符数
-        
+
         if (displayTitle && displayTitle.length > maxLength) {
             // 截断标题并添加省略号
             const truncatedTitle = displayTitle.substring(0, maxLength) + "...";
             titleElement.textContent = truncatedTitle;
-            
+
             // 添加title属性，以便用户悬停时可以看到完整标题
             titleElement.title = displayTitle;
         } else {
             titleElement.textContent = displayTitle;
         }
-        
+
         div.querySelector(".artist").textContent = song.artist;
         return div;
     }
@@ -739,45 +756,45 @@ class UIManager {
      * @param {number} options.progress - 进度值(0-100)
      * @returns {HTMLElement} 通知元素
      */
-    showNotification(message, type = 'info', {showProgress = false, progress = 0} = {}) {
+    showNotification(message, type = "info", { showProgress = false, progress = 0 } = {}) {
         // 1. 确保有容器
-        let container = document.querySelector('.notification-container');
+        let container = document.querySelector(".notification-container");
         if (!container) {
-            container = document.createElement('div');
-            container.className = 'notification-container';
+            container = document.createElement("div");
+            container.className = "notification-container";
             document.body.appendChild(container);
         }
-        
+
         // 2. 创建通知元素
-        const notification = document.createElement('div');
+        const notification = document.createElement("div");
         notification.className = `notification ${type}`;
-        
+
         // 3. 创建消息文本容器
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'notification-message';
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "notification-message";
         messageDiv.textContent = message;
         notification.appendChild(messageDiv);
-        
+
         // 4. 如果需要进度条则添加
         if (showProgress) {
-            const progressBar = document.createElement('div');
-            progressBar.className = 'notification-progress';
-            
-            const progressInner = document.createElement('div');
-            progressInner.className = 'notification-progress-inner';
+            const progressBar = document.createElement("div");
+            progressBar.className = "notification-progress";
+
+            const progressInner = document.createElement("div");
+            progressInner.className = "notification-progress-inner";
             progressInner.style.width = `${progress}%`;
-            
+
             progressBar.appendChild(progressInner);
             notification.appendChild(progressBar);
         }
-        
+
         // 5. 添加到容器
         container.appendChild(notification);
-        
+
         // 6. 如果不是进度通知，3秒后自动移除
         if (!showProgress) {
             setTimeout(() => {
-                notification.classList.add('fade-out');
+                notification.classList.add("fade-out");
                 setTimeout(() => {
                     notification.remove();
                     // 如果容器为空则移除容器
@@ -787,7 +804,7 @@ class UIManager {
                 }, 300);
             }, 3000);
         }
-        
+
         return notification;
     }
     /**
@@ -795,33 +812,32 @@ class UIManager {
      */
     initializeCustomSelects() {
         // 查找页面上所有需要转换的select元素 (跳过已有的自定义下拉框)
-        const selects = document.querySelectorAll('select:not(.custom-select-initialized):not(.speed-control)');
-        
-        selects.forEach(select => {
+        const selects = document.querySelectorAll("select:not(.custom-select-initialized):not(.speed-control)");
+
+        selects.forEach((select) => {
             // 跳过已经初始化的select或速度控制select（它有特殊处理）
-            if (select.classList.contains('custom-select-initialized') || 
-                select.classList.contains('speed-control')) {
+            if (select.classList.contains("custom-select-initialized") || select.classList.contains("speed-control")) {
                 return;
             }
-            
+
             // 从原生select中获取选项
-            const options = Array.from(select.options).map(option => ({
+            const options = Array.from(select.options).map((option) => ({
                 value: option.value,
                 text: option.textContent,
                 selected: option.selected
             }));
-            
+
             // 如果原select有change事件处理器，需要保留该行为
             const onChangeCallback = (value) => {
                 // 创建并触发一个合成的change事件
-                const event = new Event('change', { bubbles: true });
+                const event = new Event("change", { bubbles: true });
                 select.value = value;
                 select.dispatchEvent(event);
             };
-            
+
             // 标记为已初始化
-            select.classList.add('custom-select-initialized');
-            
+            select.classList.add("custom-select-initialized");
+
             // 创建自定义下拉框
             this.createCustomSelect(select, options, onChangeCallback);
         });
@@ -835,91 +851,91 @@ class UIManager {
      */
     createCustomSelect(selectElement, options, onChangeCallback) {
         // 创建容器并保持原始select的属性
-        const customSelect = document.createElement('div');
-        customSelect.className = 'custom-select';
-        customSelect.id = selectElement.id || '';
+        const customSelect = document.createElement("div");
+        customSelect.className = "custom-select";
+        customSelect.id = selectElement.id || "";
         if (selectElement.disabled) {
-            customSelect.classList.add('disabled');
+            customSelect.classList.add("disabled");
         }
-        
+
         // 获取当前选中项
-        const selectedOption = options.find(opt => opt.selected) || options[0];
-        
+        const selectedOption = options.find((opt) => opt.selected) || options[0];
+
         // 创建选中项显示区域
-        const selectSelected = document.createElement('div');
-        selectSelected.className = 'select-selected';
-        selectSelected.textContent = selectedOption ? selectedOption.text : '';
+        const selectSelected = document.createElement("div");
+        selectSelected.className = "select-selected";
+        selectSelected.textContent = selectedOption ? selectedOption.text : "";
         customSelect.appendChild(selectSelected);
-        
+
         // 创建下拉选项容器
-        const selectItems = document.createElement('div');
-        selectItems.className = 'select-items';
+        const selectItems = document.createElement("div");
+        selectItems.className = "select-items";
         customSelect.appendChild(selectItems);
-        
+
         // 添加所有选项
-        options.forEach(option => {
-            const item = document.createElement('div');
-            item.className = 'select-item';
+        options.forEach((option) => {
+            const item = document.createElement("div");
+            item.className = "select-item";
             if (option.selected) {
-                item.classList.add('selected');
+                item.classList.add("selected");
             }
             item.textContent = option.text;
             item.dataset.value = option.value;
-            
+
             // 点击选项时更新选中状态
-            item.addEventListener('click', (e) => {
+            item.addEventListener("click", (e) => {
                 e.stopPropagation();
-                
+
                 // 视觉上的选中效果
-                selectItems.querySelectorAll('.select-item').forEach(el => {
-                    el.classList.remove('selected');
+                selectItems.querySelectorAll(".select-item").forEach((el) => {
+                    el.classList.remove("selected");
                 });
-                item.classList.add('selected');
-                
+                item.classList.add("selected");
+
                 // 更新显示文本
                 selectSelected.textContent = option.text;
-                
+
                 // 关闭下拉框
-                selectSelected.classList.remove('open');
-                selectItems.classList.remove('open');
-                
+                selectSelected.classList.remove("open");
+                selectItems.classList.remove("open");
+
                 // 调用回调函数
                 if (onChangeCallback) {
                     onChangeCallback(option.value);
                 }
             });
-            
+
             selectItems.appendChild(item);
         });
-        
+
         // 点击选中区域时切换下拉框显示状态
-        selectSelected.addEventListener('click', (e) => {
+        selectSelected.addEventListener("click", (e) => {
             e.stopPropagation();
-            
+
             // 关闭其他所有已打开的下拉框
-            document.querySelectorAll('.select-selected.open').forEach(el => {
+            document.querySelectorAll(".select-selected.open").forEach((el) => {
                 if (el !== selectSelected) {
-                    el.classList.remove('open');
-                    el.nextElementSibling.classList.remove('open');
+                    el.classList.remove("open");
+                    el.nextElementSibling.classList.remove("open");
                 }
             });
-            
+
             // 切换当前下拉框状态
-            selectSelected.classList.toggle('open');
-            selectItems.classList.toggle('open');
+            selectSelected.classList.toggle("open");
+            selectItems.classList.toggle("open");
         });
-        
+
         // 点击页面其他区域时关闭下拉框
-        document.addEventListener('click', () => {
-            selectSelected.classList.remove('open');
-            selectItems.classList.remove('open');
+        document.addEventListener("click", () => {
+            selectSelected.classList.remove("open");
+            selectItems.classList.remove("open");
         });
-        
+
         // 在原select位置插入自定义下拉框，并隐藏原select
         selectElement.parentNode.insertBefore(customSelect, selectElement);
-        selectElement.style.display = 'none';
+        selectElement.style.display = "none";
     }
-    
+
     showDefaultUi() {
         // 设置默认UI显示
         document.querySelector(".player-content .cover .cover-img").src = "../img/NB_Music.png";
@@ -935,57 +951,57 @@ class UIManager {
 
     initializeWelcomeDialog() {
         // 处理复选框状态变化
-        const agreeCheckbox = document.getElementById('agreeCheckbox');
-        const agreeButton = document.getElementById('agreeTerms');
-        
+        const agreeCheckbox = document.getElementById("agreeCheckbox");
+        const agreeButton = document.getElementById("agreeTerms");
+
         if (agreeCheckbox && agreeButton) {
             // 复选框状态变化时更新按钮状态
-            agreeCheckbox.addEventListener('change', () => {
+            agreeCheckbox.addEventListener("change", () => {
                 agreeButton.disabled = !agreeCheckbox.checked;
             });
         }
-        
+
         // 免责声明链接点击事件
-        const disclaimerLink = document.getElementById('disclaimer-link');
+        const disclaimerLink = document.getElementById("disclaimer-link");
         if (disclaimerLink) {
-            disclaimerLink.addEventListener('click', (e) => {
+            disclaimerLink.addEventListener("click", (e) => {
                 e.preventDefault();
                 // 使用Electron的shell模块打开外部链接
-                ipcRenderer.send('open-external-link', 'https://nb-group.github.io/nb-music/disclaimer');
+                ipcRenderer.send("open-external-link", "https://nb-group.github.io/nb-music/disclaimer");
             });
         }
-        
+
         // 同意按钮点击事件
         if (agreeButton) {
-            agreeButton.addEventListener('click', () => {
+            agreeButton.addEventListener("click", () => {
                 if (agreeCheckbox && agreeCheckbox.checked) {
                     // 标记已经看过首次使用对话框
                     localStorage.setItem("nbmusic_first_use_seen", "true");
-                    
+
                     // 隐藏对话框
                     const firstUseDialog = document.getElementById("firstUseDialog");
                     if (firstUseDialog) {
                         firstUseDialog.classList.add("hide");
                     }
                 } else {
-                    this.showNotification('请先同意免责声明', 'warning');
+                    this.showNotification("请先同意免责声明", "warning");
                 }
             });
         }
     }
-    
+
     /**
      * 检查是否是首次使用应用，如果是则显示欢迎对话框
      */
     checkFirstUse() {
         // 检查是否是首次使用
         const hasUsedBefore = localStorage.getItem("nbmusic_first_use_seen");
-        
+
         if (!hasUsedBefore) {
             this.showWelcomeDialog();
         }
     }
-    
+
     /**
      * 显示欢迎对话框
      */
@@ -993,11 +1009,11 @@ class UIManager {
         const firstUseDialog = document.getElementById("firstUseDialog");
         if (firstUseDialog) {
             firstUseDialog.classList.remove("hide");
-            
+
             // 重置复选框和按钮状态
-            const agreeCheckbox = document.getElementById('agreeCheckbox');
-            const agreeButton = document.getElementById('agreeTerms');
-            
+            const agreeCheckbox = document.getElementById("agreeCheckbox");
+            const agreeButton = document.getElementById("agreeTerms");
+
             if (agreeCheckbox) agreeCheckbox.checked = false;
             if (agreeButton) agreeButton.disabled = true;
         }
@@ -1008,57 +1024,57 @@ class UIManager {
      */
     initializeTrayControls() {
         // 监听来自托盘的控制命令
-        ipcRenderer.on('tray-control', (_, command) => {
-            switch(command) {
-                case 'play-pause':
+        ipcRenderer.on("tray-control", (_, command) => {
+            switch (command) {
+                case "play-pause":
                     this.audioPlayer.play();
                     break;
-                case 'next':
+                case "next":
                     this.audioPlayer.next();
                     break;
-                case 'prev':
+                case "prev":
                     this.audioPlayer.prev();
                     break;
-                case 'show-settings':
-                    this.show('.setting');
+                case "show-settings":
+                    this.show(".setting");
                     break;
-                case 'about':
+                case "about":
                     // 滚动到关于部分
-                    this.show('.setting');
+                    this.show(".setting");
                     setTimeout(() => {
-                        const aboutCard = document.querySelector('.about-card');
+                        const aboutCard = document.querySelector(".about-card");
                         if (aboutCard) {
-                            aboutCard.scrollIntoView({ behavior: 'smooth' });
+                            aboutCard.scrollIntoView({ behavior: "smooth" });
                         }
                     }, 100);
                     break;
-                case 'check-update':
-                    document.getElementById('check-update')?.click();
+                case "check-update":
+                    document.getElementById("check-update")?.click();
                     break;
             }
         });
-        
+
         // 监听音频播放状态变化，更新托盘信息
-        this.audioPlayer.audio.addEventListener('play', () => this.updateTrayInfo());
-        this.audioPlayer.audio.addEventListener('pause', () => this.updateTrayInfo());
-        
+        this.audioPlayer.audio.addEventListener("play", () => this.updateTrayInfo());
+        this.audioPlayer.audio.addEventListener("pause", () => this.updateTrayInfo());
+
         // 修复：不再使用不存在的事件监听方法
         // 监听歌曲切换时更新托盘信息 - 通过UIManager内部方法调用
         this.songChangedHandler = () => this.updateTrayInfo();
-        
+
         // 窗口显示/隐藏时也更新托盘
-        ipcRenderer.on('window-show', () => this.updateTrayInfo());
-        ipcRenderer.on('window-hide', () => this.updateTrayInfo());
-        
+        ipcRenderer.on("window-show", () => this.updateTrayInfo());
+        ipcRenderer.on("window-hide", () => this.updateTrayInfo());
+
         // 初始更新托盘
         this.updateTrayInfo();
-        
+
         // 监听来自主进程的显示欢迎页面的命令
-        ipcRenderer.on('show-welcome', () => {
+        ipcRenderer.on("show-welcome", () => {
             this.showWelcomeDialog();
         });
     }
-    
+
     /**
      * 更新托盘显示信息
      */
@@ -1066,33 +1082,33 @@ class UIManager {
         try {
             const isPlaying = !this.audioPlayer.audio.paused;
             let song = { title: "未在播放", artist: "" };
-            
+
             // 如果有正在播放的歌曲，获取其信息
             if (this.playlistManager && this.playlistManager.playlist.length > 0) {
                 const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
                 if (currentSong) {
                     // 根据提取标题的设置决定显示方式
-                    const titleMode = this.settingManager.getSetting('extractTitle');
+                    const titleMode = this.settingManager.getSetting("extractTitle");
                     let displayTitle = currentSong.title;
-                    
-                    if (titleMode === 'on') {
+
+                    if (titleMode === "on") {
                         displayTitle = extractMusicTitle(currentSong.title);
                     }
-                    
+
                     song = {
                         title: displayTitle || "未知歌曲",
                         artist: currentSong.artist || "未知艺术家"
                     };
                 }
             }
-            
+
             // 发送更新到主进程
-            ipcRenderer.send('update-tray', {
+            ipcRenderer.send("update-tray", {
                 isPlaying,
                 song
             });
         } catch (error) {
-            console.error('更新托盘信息失败:', error);
+            console.error("更新托盘信息失败:", error);
         }
     }
 }

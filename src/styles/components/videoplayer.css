@@ -83,7 +83,7 @@
 /* 添加视频控件定制样式 */
 #videoPlayer::-webkit-media-controls-panel {
   background-color: rgba(var(--bg-glass-rgb), 0.7);
-  backdrop-filter: blur(5px);
+  /* backdrop-filter: blur(5px); */
 }
 
 #videoPlayer::-webkit-media-controls-play-button {

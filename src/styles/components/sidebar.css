@@ -13,10 +13,6 @@
   height: 100%;
 }
 
-.sidebar.hide {
-  display: block !important;
-}
-
 /* 列表通用样式 */
 .list {
   display: flex;
@@ -93,6 +89,7 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: saturate(130%) brightness(1.1);
+  margin-right: 4px;
 }
 
 #function-list a {
