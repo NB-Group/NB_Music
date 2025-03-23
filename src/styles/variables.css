@@ -9,6 +9,10 @@
   --primary-color: #ad6eca;
   --secondary-color: #3b91d8;
   --mica-opacity: 0.5;
+
+  /* 其他外观 */
+  --font-family-custom: ;
+  --font-family-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell;
 }
 
 /* 深色主题变量 */

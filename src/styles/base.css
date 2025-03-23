@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-family-custom), var(--font-family-fallback), sans-serif;
   background: var(--bgul);
   color: var(--text);
   width: 100%;
