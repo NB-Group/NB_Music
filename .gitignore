@@ -5,6 +5,9 @@ node_modules/
 build/
 dist/
 
+# 忽略网易云音乐API仓库
+neteasecloudmusicapi/
+
 # 忽略日志文件
 *.log
 
