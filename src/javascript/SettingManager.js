@@ -5,6 +5,8 @@ class SettingManager {
     static DEFAULT_PRIMARY_COLOR = '#ad6eca';
     static DEFAULT_SECONDARY_COLOR = '#3b91d8';
     static DEFAULT_MICA_OPACITY = 0.5;
+    static DEFAULT_FONT_FAMILY_CUSTOM = "";
+    static DEFAULT_FONT_FAMILY_FALLBACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell";
 
     constructor() {
         this.settings = {
@@ -18,6 +20,8 @@ class SettingManager {
             primaryColor: SettingManager.DEFAULT_PRIMARY_COLOR, // 默认主色
             secondaryColor: SettingManager.DEFAULT_SECONDARY_COLOR, // 默认次色
             micaOpacity: SettingManager.DEFAULT_MICA_OPACITY, // 默认Mica透明度
+            fontFamilyCustom: SettingManager.DEFAULT_FONT_FAMILY_CUSTOM,
+            fontFamilyFallback: SettingManager.DEFAULT_FONT_FAMILY_FALLBACK,
             videoQuality: 64, // 新增：背景视频清晰度，默认720P
             hideSidebar: false,
             hideTitbar: false,
@@ -29,6 +33,7 @@ class SettingManager {
         this.setupAboutLinks();
         this.setAppVersion();
         this.setupCustomThemeControls();
+        this.applyFontFamily();
     }
 
     loadSettings() {
@@ -106,6 +111,23 @@ class SettingManager {
             });
         });
 
+        // 监听设置文本输入完成
+        document.querySelectorAll('nav input[data-key]').forEach(element => {
+            const key = element.getAttribute('data-key');
+            element.value = this.settings[key];
+
+            element.addEventListener('blur', (e) => {
+                const key = e.target.getAttribute('data-key');
+                const value = e.target.value;
+
+                // 保存设置
+                this.setSetting(key, value);
+
+                // 应用设置
+                this.applySettingChange(key, value);
+            });
+       });
+
         // 清除缓存按钮事件
         const clearCacheBtn = document.getElementById('clearCache');
         if (clearCacheBtn) {
@@ -155,12 +177,10 @@ class SettingManager {
                 this.showNotification('主题颜色已重置', 'success');
             });
         }
-
-        this.sliderSetting('micaOpacity', '50%', "透明度已重置", (value) => `${Math.round(value * 100)}%`, () => this.applyMicaOpacity())
-
-        // 初始应用主题色和透明度
+        // 初始应用主题色
         this.applyThemeColors();
-        this.applyMicaOpacity();
+
+        this.sliderSetting('micaOpacity', '50%', "透明度已重置", (value) => `${Math.round(value * 100)}%`, () => this.applyMicaOpacity())        
     }
 
     sliderSetting(id, defaultValue, resetText, value2display, afterValueApply) {
@@ -194,6 +214,7 @@ class SettingManager {
                 this.showNotification(resetText, 'success');
             });
         }
+        afterValueApply()
     }
 
     applyThemeColors() {
@@ -205,6 +226,13 @@ class SettingManager {
     applyMicaOpacity() {
         const root = document.documentElement;
         root.style.setProperty('--mica-opacity', this.settings.micaOpacity);
+    }
+
+    applyFontFamily() {
+        const root = document.documentElement;
+        root.style.setProperty('--font-family-custom', this.settings.fontFamilyCustom);
+        root.style.setProperty('--font-family-fallback', this.settings.fontFamilyFallback);
+        console.log(`DEBUG: 设置字体为 ${this.settings.fontFamilyCustom}, ${this.settings.fontFamilyFallback}`);
     }
 
     applySettingChange(key, value) {
@@ -226,6 +254,10 @@ class SettingManager {
             case 'videoQuality':
                 // 视频质量变更时无需即时应用，下次加载视频时会使用新设置
                 this.showNotification(`背景视频质量已设置为 ${this.getQualityName(value)}`, 'success');
+                break;
+            case 'fontFamilyCustom':
+            case 'fontFamilyFallback':
+                this.applyFontFamily();
                 break;
             // 其他设置的处理...
         }
