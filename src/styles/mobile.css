@@ -1,0 +1,512 @@
+/**
+ * NB Music 移动端适配样式
+ */
+
+/* 移动设备媒体查询 */
+@media (max-width: 767px) {
+    /* 基础样式调整 */
+    body.mobile-view {
+        overflow: hidden;
+    }
+
+    /* 标题栏调整 */
+    body.mobile-view .titbar {
+        padding: 8px 10px;
+        height: 48px;
+    }
+
+    body.mobile-view .titbar > div:last-child {
+        display: none !important; /* 移除窗口控制按钮 */
+    }
+
+    body.mobile-view .login-btn {
+        right: 10px;
+    }
+
+    /* 搜索框调整 */
+    body.mobile-view .titbar > .search {
+        width: 40px;
+        padding: 8px;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    body.mobile-view .titbar > .search.collapsed {
+        width: 40px;
+        border-radius: 50%;
+    }
+
+    body.mobile-view .titbar > .search.collapsed::before {
+        content: '\F52A';
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--text);
+        font-size: 20px;
+        opacity: 0.7;
+    }
+
+    body.mobile-view .titbar > .search.collapsed .search-music {
+        opacity: 0;
+        width: 0;
+        padding: 0;
+    }
+
+    body.mobile-view .titbar > .search.expanded {
+        width: calc(100vw - 100px);
+    }
+
+    body.mobile-view .titbar > .search.expanded .search-music {
+        opacity: 1;
+        width: 100%;
+    }
+
+    /* 内容区域布局调整 */
+    body.mobile-view .mica {
+        display: block;
+        height: calc(100vh - 48px);
+    }
+
+    body.mobile-view .sidebar {
+        display: none !important; /* 隐藏侧边栏 */
+    }
+
+    body.mobile-view .content {
+        width: 100%;
+        height: calc(100vh - 48px - 60px); /* 减去底部导航栏高度 */
+        padding-bottom: 10px;
+    }
+
+    /* 播放器视图调整 - 修复播放器内容消失问题 */
+    body.mobile-view .player {
+        position: relative;
+        flex-direction: column !important;
+        overflow: hidden;
+        height: 100% !important;
+        width: 100% !important;
+    }
+
+    body.mobile-view .player-content,
+    body.mobile-view #lyrics-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+
+    body.mobile-view .player-content {
+        z-index: 2; /* 确保播放器内容在初始状态下在歌词上方 */
+        transform: translateX(0);
+    }
+
+    body.mobile-view #lyrics-container {
+        z-index: 1;
+        transform: translateX(100%);
+    }
+
+    /* 非活动视图移出屏幕 */
+    body.mobile-view .player.show-player .player-content {
+        transform: translateX(0);
+    }
+
+    body.mobile-view .player.show-player #lyrics-container {
+        transform: translateX(100%);
+    }
+
+    body.mobile-view .player.show-lyrics .player-content {
+        transform: translateX(-100%);
+    }
+
+    body.mobile-view .player.show-lyrics #lyrics-container {
+        transform: translateX(0);
+    }
+
+    /* 增强滑动视觉反馈 */
+    body.mobile-view .player.sliding .player-content,
+    body.mobile-view .player.sliding #lyrics-container {
+        transition: transform 0.12s linear;
+    }
+
+    /* 歌词显示调整 */
+    body.mobile-view #lyrics-container {
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* 页面指示器 - 恢复原始样式 */
+    .page-indicator {
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none; /* 默认隐藏 */
+        gap: 8px;
+        z-index: 100;
+        padding: 5px 10px;
+        background-color: var(--mica);
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        pointer-events: auto; /* 确保可点击 */
+    }
+
+    .page-indicator .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text);
+        opacity: 0.3;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .page-indicator .dot.active {
+        opacity: 0.8;
+        width: 16px;
+        border-radius: 4px;
+    }
+
+    /* 删除之前添加的复杂样式 */
+
+    /* 滑动提示动画 */
+    .swipe-hint {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        opacity: 0;
+        animation: swipe-hint 0.5s ease;
+    }
+
+    @keyframes swipe-hint {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+        50% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    /* 移动端底部导航栏 */
+    .mobile-navbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: var(--mica);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border-1);
+        display: none;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .mobile-navbar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--text);
+        opacity: 0.6;
+        transition: all 0.2s ease;
+        position: relative;
+        height: 100%;
+        padding: 0 15px;
+    }
+
+    .mobile-navbar a i {
+        font-size: 22px;
+        margin-bottom: 2px;
+    }
+
+    .mobile-navbar a span {
+        font-size: 12px;
+    }
+
+    .mobile-navbar a.active {
+        opacity: 1;
+        color: var(--theme-1);
+    }
+
+    .mobile-navbar a.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 3px;
+        background: linear-gradient(to right, var(--theme-1), var(--theme-2));
+        border-radius: 3px 3px 0 0;
+    }
+
+    .mobile-navbar a::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: linear-gradient(to right, var(--theme-1), var(--theme-2));
+        transform: translateX(-50%);
+        transition: width 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+        border-radius: 3px 3px 0 0;
+    }
+
+    .mobile-navbar a.active::before {
+        width: 30px;
+    }
+
+    .mobile-navbar .playlist-toggle .count {
+        position: absolute;
+        top: 5px;
+        right: 50%;
+        transform: translateX(8px);
+        background: var(--theme-1);
+        color: white;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        font-size: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 3px;
+    }
+
+    /* 移动端播放列表浮窗增强 - 添加关闭遮罩 */
+    .mobile-playlist-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-playlist-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobile-playlist {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 0;
+        background: var(--mica);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px 16px 0 0;
+        overflow: hidden;
+        z-index: 101;
+        border-top: 1px solid var(--border-1);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transform: translateY(100%);
+        max-height: 80vh;
+    }
+
+    .mobile-playlist.open {
+        transform: translateY(0);
+        height: 50vh;
+    }
+
+    /* 关闭指示器 */
+    .mobile-playlist .close-indicator {
+        width: 40px;
+        height: 4px;
+        background-color: var(--border-1);
+        border-radius: 2px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-playlist.closing .close-indicator {
+        opacity: 1;
+    }
+
+    .playlist-drag-handle {
+        width: 40px;
+        height: 5px;
+        background: var(--border-1);
+        border-radius: 3px;
+        margin: 8px auto;
+        cursor: grab;
+    }
+
+    .mobile-playlist-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px 10px;
+        border-bottom: 1px solid var(--border-1);
+    }
+
+    .mobile-playlist-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .mobile-playlist-header .controls {
+        display: flex;
+        gap: 15px;
+    }
+
+    .mobile-playlist-content {
+        height: calc(100% - 60px);
+        overflow-y: auto;
+        padding: 0 10px;
+    }
+
+    .mobile-playlist-content .song {
+        margin: 8px 0;
+        position: relative;
+        cursor: pointer;
+        z-index: 1;
+    }
+
+    .mobile-playlist-content .song::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: transparent;
+        transition: background-color 0.2s ease;
+    }
+
+    .mobile-playlist-content .song:active::after {
+        background-color: var(--hover);
+    }
+
+    /* 其他页面的移动端调整 */
+    body.mobile-view .love-list,
+    body.mobile-view .music-list,
+    body.mobile-view .setting,
+    body.mobile-view .search-result {
+        padding: 16px;
+    }
+
+    body.mobile-view .music-list-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    body.mobile-view .playlist-section,
+    body.mobile-view .song-section {
+        padding: 15px;
+    }
+
+    /* 设置页面调整 */
+    body.mobile-view .setting-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    body.mobile-view .setting-value nav {
+        padding: 0.5rem;
+    }
+
+    body.mobile-view .setting-value nav a {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.9rem;
+    }
+
+    body.mobile-view .about-card {
+        padding: 16px;
+    }
+
+    body.mobile-view .about-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* 对话框在移动端的调整 */
+    body.mobile-view .dialog {
+        width: 90vw;
+        min-width: auto;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    body.mobile-view .video-dialog {
+        width: 95vw;
+        height: auto;
+    }
+
+    body.mobile-view .media-selectors {
+        flex-direction: column;
+    }
+
+    /* 添加页面转场动画 */
+    @keyframes page-slide-in-right {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+
+    @keyframes page-slide-in-left {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(0); }
+    }
+    
+    @keyframes page-slide-out-right {
+        from { transform: translateX(0); }
+        to { transform: translateX(100%); }
+    }
+    
+    @keyframes page-slide-out-left {
+        from { transform: translateX(0); }
+        to { transform: translateX(-100%); }
+    }
+
+    body.mobile-view .content > div:not(.hide) {
+        animation: page-slide-in-right 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+    }
+
+    body.mobile-view .content > div.slide-out {
+        animation: page-slide-out-left 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+    }
+
+    /* 滑动切换过程中的动态效果 */
+    .drag-following .player-content,
+    .drag-following #lyrics-container {
+        transition: none !important;
+    }
+}

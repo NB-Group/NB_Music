@@ -24,6 +24,7 @@
 
 /* 导入工具 */
 @import './utilities.css';
+@import './mobile.css';
 
 /* 导入第三方库 */
 @import '../../node_modules/bootstrap-icons/font/bootstrap-icons.css';

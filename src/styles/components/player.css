@@ -14,6 +14,7 @@
 .player-content {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 40px;
   gap: 32px;
