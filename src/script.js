@@ -62,10 +62,14 @@ class App {
             this.audioPlayer.playlistManager = this.playlistManager;
             this.audioPlayer.uimanager = this.uiManager;
             this.playlistManager.uiManager = this.uiManager;
-            this.uiManager.playlistManager = this.playlistManager;
+            
+            // 更新UIManager中的组件引用（补全依赖项）
             this.uiManager.favoriteManager = this.favoriteManager;
             this.uiManager.musicSearcher = this.musicSearcher;
             this.uiManager.lyricsPlayer = this.lyricsPlayer;
+            this.uiManager.setVideoPlayerManager(this.videoPlayerManager);
+            
+            // 更新其他组件引用
             this.musicSearcher.uiManager = this.uiManager;
             this.musicSearcher.playlistManager = this.playlistManager;
             this.musicSearcher.favoriteManager = this.favoriteManager;
@@ -251,6 +255,16 @@ class App {
 
         // 设置更新相关事件监听
         this.setupUpdateEvents();
+
+        // 添加全局函数以获取B站cookies
+        window.getCookieString = async () => {
+            try {
+                return await ipcRenderer.invoke('get-bilibili-cookies');
+            } catch (error) {
+                console.error('获取B站cookies失败:', error);
+                return '';
+            }
+        };
     }
 
     setupUpdateEvents() {
@@ -310,7 +324,57 @@ class App {
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         new App();
+        initSidebarResizer();
     } catch (error) {
         console.error("应用初始化失败:", error);
     }
 });
+
+// 添加侧边栏大小调整功能
+function initSidebarResizer() {
+  const sidebar = document.querySelector('.sidebar');
+  const resizer = document.getElementById('sidebar-resizer');
+
+  if (!resizer) return;
+
+  let startX, startWidth;
+
+  // 当用户按下鼠标开始拖动
+  resizer.addEventListener('mousedown', function(e) {
+    startX = e.clientX;
+    startWidth = sidebar.offsetWidth;
+    
+    // 添加临时事件监听
+    document.documentElement.addEventListener('mousemove', resize);
+    document.documentElement.addEventListener('mouseup', stopResize);
+    
+    // 阻止默认行为和冒泡
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  // 拖动调整大小
+  function resize(e) {
+    const newWidth = startWidth + (e.clientX - startX);
+    
+    // 限制最小和最大宽度
+    if (newWidth >= 150 && newWidth <= 400) {
+      sidebar.style.width = newWidth + 'px';
+    }
+  }
+
+  // 停止拖动
+  function stopResize() {
+    document.documentElement.removeEventListener('mousemove', resize);
+    document.documentElement.removeEventListener('mouseup', stopResize);
+    
+    // 保存当前宽度到本地存储中
+    localStorage.setItem('sidebarWidth', sidebar.style.width);
+  }
+
+  // 恢复保存的宽度设置（如果有）
+  const savedWidth = localStorage.getItem('sidebarWidth');
+  if (savedWidth) {
+    sidebar.style.width = savedWidth;
+  }
+}

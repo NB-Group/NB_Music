@@ -1,0 +1,8 @@
+mkdocs/html/
+/.vuepress/.cache/
+/.vuepress/.temp/
+/.vuepress/dist/
+/node_modules/
+.idea/
+.vscode/
+.DS_Store

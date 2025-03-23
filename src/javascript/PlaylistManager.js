@@ -14,8 +14,7 @@ class PlaylistManager {
         this.currentTime = 0;
         this.currentLoadingController = null;
         this.currentPlayingBvid = null;
-        // 用于随机播放
-        this.shuffledlist = [];
+
         // 'repeat', 'shuffle', 'repeat-one'
         this.playMode = localStorage.getItem('nbmusic_play_mode') || 'repeat';
 
@@ -38,25 +37,14 @@ class PlaylistManager {
     }
     next() {
         if (this.playlist.length === 0) return;
-        
+
         let nextIndex;
         switch (this.playMode) {
             case 'shuffle':
                 // 随机播放
-                if (!this.shuffledlist.length) {
-                    this.shuffledlist = Array.from({length:this.playlist.length},(_, i)=>i);
-                    // Fisher-Yates算法，打乱顺序
-                    for (let i = 1; i < this.shuffledlist.length; i++) {
-                        const random = Math.floor(Math.random() * (i + 1));
-                        [this.shuffledlist[i], this.shuffledlist[random]] = [this.shuffledlist[random], this.shuffledlist[i]];
-                    }
-                 }
-                nextIndex = this.shuffledlist.shift();
-                log.info(nextIndex);
-                // 检测是否已经循环完一轮
-                if (!nextIndex) {
-                    // 在重新打乱前临时放第一首
-                    nextIndex = 0;
+                nextIndex = Math.floor(Math.random() * this.playlist.length);
+                while (nextIndex === this.playingNow && this.playlist.length > 1) {
+                    nextIndex = Math.floor(Math.random() * this.playlist.length);
                 }
                 break;
             case 'repeat-one':

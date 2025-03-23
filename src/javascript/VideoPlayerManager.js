@@ -256,8 +256,10 @@ class VideoPlayerManager {
     
     /**
      * 打开视频播放器
+     * @param {string} [customVideoUrl] - 可选，自定义视频URL
+     * @param {string} [customTitle] - 可选，自定义视频标题
      */
-    async openVideoPlayer() {
+    async openVideoPlayer(customVideoUrl, customTitle) {
         try {
             if (this.isLoading) return;
             
@@ -324,8 +326,11 @@ class VideoPlayerManager {
                 }
             }, 15000); // 15秒超时
             
-            // 获取当前播放歌曲的视频URL
-            const videoUrl = await this.playlistManager.getCurrentVideoUrl();
+            // 获取视频URL - 优先使用自定义URL，如果没有则获取当前播放的
+            let videoUrl = customVideoUrl;
+            if (!videoUrl) {
+                videoUrl = await this.playlistManager.getCurrentVideoUrl();
+            }
             
             // 清除超时定时器
             clearTimeout(this.loadingTimeout);
@@ -338,7 +343,7 @@ class VideoPlayerManager {
                     this.videoOverlay.innerHTML = `
                         <div class="video-message">
                             <i class="bi bi-exclamation-triangle"></i>
-                            <span>当前歌曲没有可用视频</span>
+                            <span>没有可用视频</span>
                         </div>
                     `;
                 }
@@ -351,8 +356,14 @@ class VideoPlayerManager {
             
             // 更新视频标题
             if (this.videoTitle) {
-                const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
-                this.videoTitle.textContent = currentSong ? currentSong.title : '正在播放';
+                if (customTitle) {
+                    // 使用自定义标题
+                    this.videoTitle.textContent = customTitle;
+                } else {
+                    // 使用当前播放歌曲的标题
+                    const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
+                    this.videoTitle.textContent = currentSong ? currentSong.title : '正在播放';
+                }
             }
             
             // 清理旧的事件监听器
@@ -371,8 +382,18 @@ class VideoPlayerManager {
             this.currentVideoUrl = videoUrl;
             this.videoPlayer.load();
             
-            // 添加音频事件监听，确保视频与音频同步
-            this.setupAudioSyncEvents();
+            // 如果是直接加载视频而不是从播放列表播放的视频，不需要设置音频同步
+            if (!customVideoUrl) {
+                this.setupAudioSyncEvents();
+            } else {
+                // 直接播放视频
+                try {
+                    await this.videoPlayer.play();
+                } catch (error) {
+                    console.warn('自动播放视频失败:', error);
+                    this.uiManager.showNotification('请点击视频开始播放', 'info');
+                }
+            }
             
         } catch (error) {
             console.error('打开视频播放器失败:', error);

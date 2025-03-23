@@ -11,14 +11,55 @@
   display: flex !important;
   flex-direction: column;
   height: 100%;
+  min-width: 180px; /* 确保侧边栏有足够宽度 */
+  width: 220px; /* 初始宽度稍微大一点 */
+  position: relative; /* 用于定位调整大小的句柄 */
+  overflow: hidden; /* 修改为hidden，防止出现滚动条 */
+}
+
+.sidebar.hide {
+  display: block !important;
+}
+
+/* 侧边栏调整大小的拖动条 */
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 100;
+  background-color: transparent;
+  border-right: 1px solid var(--border-1);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-resizer:hover {
+  opacity: 1;
+  background-color: rgba(var(--theme-1), 0.2);
+}
+
+.sidebar-resizer:active {
+  opacity: 1;
+  background-color: rgba(var(--theme-1), 0.3);
 }
 
 /* 列表通用样式 */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   padding: 0 16px;
+  list-style: none;
+  margin: 0;
+}
+
+.list li {
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 .list a {
@@ -28,19 +69,25 @@
   border-radius: 8px;
   color: var(--text);
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  margin-bottom: 2px;
+  background: transparent;
 }
 
-.list a:hover {
+/* 未选中状态：悬停时有淡淡的背景 */
+.list a:hover:not(.check) {
   background: linear-gradient(90deg,
-      rgba(var(--theme-1), 0.5),
-      rgba(var(--theme-2), 0.5));
+      rgba(var(--theme-1), 0.15),
+      rgba(var(--theme-2), 0.15));
 }
 
+/* 选中状态：蓝紫色渐变背景 */
 .list a.check {
   background: linear-gradient(90deg,
-      rgba(var(--theme-1), 0.5),
-      rgba(var(--theme-2), 0.5));
+      rgba(106, 17, 203, 0.9),
+      rgba(37, 117, 252, 0.9));
+  box-shadow: 0 2px 8px rgba(37, 117, 252, 0.5);
+  color: white;
 }
 
 /* 焦点指示器 */
@@ -55,10 +102,13 @@
   background: linear-gradient(0deg, var(--theme-1), var(--theme-2));
   border-radius: 3px;
   pointer-events: none;
+  z-index: 0; /* 确保指示条在内容之下 */
+  left: 0px; /* 调整左侧位置 */
 }
 
 .list.focs span.focs {
   transition: 500ms cubic-bezier(1, 0, 0, 1);
+  left: 0px; /* 调整左侧位置 */
 }
 
 .list.focs span.focs.moving {
@@ -81,28 +131,64 @@
 
 #function-list {
   position: relative;
+  padding-top: 5px;
+  width: 100%; /* 确保列表占满宽度 */
 }
 
-#function-list>a>i {
+#function-list li {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#function-list a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 10px 10px 16px; /* 增加左侧内边距，为指示条预留空间 */
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible; /* 确保内容不被裁剪 */
+}
+
+#function-list a i {
   background-image: linear-gradient(100deg, var(--theme-1), var(--theme-2));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: saturate(130%) brightness(1.1);
-  margin-right: 4px;
+  font-size: 16px;
+  display: inline-block;
+  width: 24px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative; /* 确保图标正确定位 */
+  z-index: 2; /* 确保图标在文字之上 */
 }
 
-#function-list a {
-  position: relative;
-  transition: background-color 0.3s ease;
+/* 选中状态下图标为白色 */
+#function-list a.check i {
+  background-image: none;
+  -webkit-text-fill-color: white;
+  filter: none;
 }
 
-#function-list a.check {
-  background: var(--border-1);
+#function-list a span {
+  font-size: 14px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: visible; /* 允许文字溢出显示 */
+  text-overflow: unset; /* 取消省略号 */
+  color: var(--text);
+  position: relative; /* 确保文字正确定位 */
+  z-index: 2; /* 确保文字在背景和指示条之上 */
 }
 
-#function-list a:hover:not(.check) {
-  background: var(--rgba-16);
+/* 选中状态下文字为白色 */
+#function-list a.check span {
+  color: white;
 }
 
 /* 播放列表样式 */
@@ -180,4 +266,285 @@
 
 .rename {
   cursor: pointer;
+}
+
+/* 选中样式统一：确保所有菜单项选中状态样式一致 */
+#function-list a.check, 
+#function-list a.player.check,
+#function-list a.daily-recommend.check,
+#function-list a.love-list.check,
+#function-list a.music-list.check,
+#function-list a.setting.check {
+  background: linear-gradient(90deg,
+      rgba(106, 17, 203, 0.9),
+      rgba(37, 117, 252, 0.9));
+  box-shadow: 0 2px 8px rgba(37, 117, 252, 0.5);
+  color: white;
+}
+
+/* Mini Player */
+.mini-player {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(var(--theme-1-rgb), 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-1);
+  padding: 10px 10px 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+  height: 150px;
+}
+
+/* 复古唱片机样式 */
+.record-player {
+  position: relative;
+  width: 100%;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 0px;
+  overflow: visible; /* 改为visible，让唱片可以溢出显示 */
+}
+
+/* 唱片 */
+.vinyl-record {
+  width: 70px;
+  height: 70px;
+  margin-top: -0px; /* 将唱片往下移动一点，从-25px改为-20px */
+  border-radius: 50%;
+  background-color: #000;
+  background-image: radial-gradient(circle at center, 
+    #151515 0%, 
+    #232323 20%, 
+    #151515 21%, 
+    #232323 30%, 
+    #151515 31%, 
+    #232323 40%, 
+    #151515 41%, 
+    #232323 50%, 
+    #151515 51%, 
+    #232323 60%, 
+    #151515 61%, 
+    #232323 70%, 
+    #151515 71%, 
+    #232323 80%, 
+    #151515 81%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+  position: relative;
+  transition: all 0.4s ease-in-out;
+  z-index: 1;
+  /* 唱片中心为封面 */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 40px 40px;
+  background-blend-mode: multiply;
+  overflow: hidden;
+  cursor: pointer;
+  transform-origin: center;
+  opacity: 1 !important;
+}
+
+/* 唱片中心点 */
+.vinyl-record::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  z-index: 3;
+}
+
+/* 唱臂细节 */
+.tonearm::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #ddd;
+  border-radius: 50%;
+  bottom: 2px;
+  right: 1px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.tonearm::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(var(--theme-1-rgb), 0.9);
+  box-shadow: 0 0 5px rgba(var(--theme-1-rgb), 0.5);
+}
+
+/* 播放器底座 */
+.player-base {
+  display: none; /* 隐藏黑色底座 */
+}
+
+/* 唱片旋转动画 */
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.vinyl-record.playing {
+  animation: rotate 8s linear infinite;
+  box-shadow: 0 4px 25px rgba(var(--theme-1-rgb), 0.6);
+}
+
+/* 唱臂 */
+.tonearm {
+  position: absolute;
+  top: 10px; /* 调整唱臂位置，让它更靠上 */
+  right: 27px;
+  width: 65px;
+  height: 12px;
+  background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
+  border-radius: 5px 10px 10px 2px;
+  transform-origin: right center;
+  transform: rotate(-10deg);
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 3;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tonearm.paused {
+  transform: rotate(-40deg);
+}
+
+/* 歌曲信息样式 */
+.mini-player-info {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0 10px;
+  overflow: hidden;
+  bottom: 25px; /* 将文字再往下移动，从35px改为25px */
+  z-index: 5;
+}
+
+.mini-player-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+  color: var(--text);
+  margin-bottom: 3px;
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.7); /* 添加文字阴影增强可读性 */
+}
+
+.mini-player-artist {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+  text-shadow: 0px 1px 1px rgba(0,0,0,0.5); /* 添加文字阴影增强可读性 */
+}
+
+/* 隐藏控制按钮区域 */
+.player-controls {
+  display: none;
+}
+
+/* 移除所有滑动相关的样式 */
+.swipe-hint {
+  display: none;
+}
+
+@keyframes swipeLeft, @keyframes swipeRight {
+  display: none;
+}
+
+.vinyl-record.swipe-left, .vinyl-record.swipe-right {
+  animation: none;
+}
+
+/* 唱片的切换动画 - 向左滑出 */
+@keyframes discOutLeft {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9); }
+  50% { transform: translateX(-100px) rotate(-90deg); opacity: 0.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); }
+  100% { transform: translateX(-150px) rotate(-180deg); opacity: 0; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); }
+}
+
+/* 唱片的切换动画 - 向右滑出 */
+@keyframes discOutRight {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9); }
+  50% { transform: translateX(100px) rotate(90deg); opacity: 0.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); }
+  100% { transform: translateX(150px) rotate(180deg); opacity: 0; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); }
+}
+
+/* 唱片的切换动画 - 从左侧进入 */
+@keyframes discInLeft {
+  0% { transform: translateX(-150px) rotate(-180deg); opacity: 0; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); }
+  50% { transform: translateX(-100px) rotate(-90deg); opacity: 0.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9); }
+}
+
+/* 唱片的切换动画 - 从右侧进入 */
+@keyframes discInRight {
+  0% { transform: translateX(150px) rotate(180deg); opacity: 0; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); }
+  50% { transform: translateX(100px) rotate(90deg); opacity: 0.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9); }
+}
+
+.vinyl-record.disc-out-left {
+  animation: discOutLeft 0.6s ease-in forwards !important;
+}
+
+.vinyl-record.disc-out-right {
+  animation: discOutRight 0.6s ease-in forwards !important;
+}
+
+.vinyl-record.disc-in-left {
+  animation: discInLeft 0.6s ease-out forwards !important;
+}
+
+.vinyl-record.disc-in-right {
+  animation: discInRight 0.6s ease-out forwards !important;
+}
+
+/* 拖动时的样式 */
+.vinyl-record.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* 增强唱片旋转动画 */
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.vinyl-record.playing {
+  animation: rotate 8s linear infinite;
+  box-shadow: 0 4px 25px rgba(var(--theme-1-rgb), 0.6);
 }

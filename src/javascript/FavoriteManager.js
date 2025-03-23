@@ -87,45 +87,60 @@ class FavoriteManager {
     }
 
     renderFavoriteList(listElement) {
+        if (!listElement) {
+            console.error("收藏列表元素不存在");
+            return;
+        }
+        
         listElement.innerHTML = "";
+        
+        // 确保UI管理器和所需方法都存在
+        if (!this.uiManager || !this.uiManager.playlistUIModule) {
+            console.error("UI管理器或播放列表UI模块未初始化");
+            return;
+        }
 
         // 重新渲染所有收藏歌曲
         this.lovelist.forEach((song) => {
-            const div = this.uiManager.createSongElement(song, song.bvid, {
-                isDelete: false
-            });
+            try {
+                const div = this.uiManager.playlistUIModule.createSongElement(song, song.bvid, {
+                    isDelete: false
+                });
 
-            // 点击播放
-            div.addEventListener("click", (e) => {
-                const playlist = this.playlistManager.playlist;
-                const loveBtn = e.target.closest(".love");
-                if (loveBtn) {
-                    e.stopPropagation();
-                    // 修改这里：使用 closest 获取父元素的 data-bvid
-                    const songBvid = e.target.closest('[data-bvid]').getAttribute('data-bvid');
-                    const songIndex = playlist.findIndex((item) => item.bvid === songBvid);
-                    const song = this.playlistManager.playlist[songIndex];
+                // 点击播放
+                div.addEventListener("click", (e) => {
+                    const playlist = this.playlistManager.playlist;
+                    const loveBtn = e.target.closest(".love");
+                    if (loveBtn) {
+                        e.stopPropagation();
+                        // 修改这里：使用 closest 获取父元素的 data-bvid
+                        const songBvid = e.target.closest('[data-bvid]').getAttribute('data-bvid');
+                        const songIndex = playlist.findIndex((item) => item.bvid === songBvid);
+                        const song = this.playlistManager.playlist[songIndex];
 
-                    if (loveBtn.querySelector("i").classList.contains("loved")) {
-                        this.removeFromFavorites(song);
+                        if (loveBtn.querySelector("i").classList.contains("loved")) {
+                            this.removeFromFavorites(song);
+                        } else {
+                            this.addToFavorites(song);
+                        }
                     } else {
-                        this.addToFavorites(song);
+                        //如果在播放列表中找到了这首歌
+                        if (playlist.some((item) => item.bvid === song.bvid)) {
+                            this.playlistManager.setPlayingNow(playlist.findIndex((item) => item.bvid === song.bvid));
+                            document.querySelector("#function-list .player").click();
+                        } else {
+                            this.playlistManager.addSong(song);
+                            this.playlistManager.setPlayingNow(playlist.length - 1, false);
+                            this.uiManager.renderPlaylist();
+                            document.querySelector("#function-list .player").click();
+                        }
                     }
-                } else {
-                    //如果在播放列表中找到了这首歌
-                    if (playlist.some((item) => item.bvid === song.bvid)) {
-                        this.playlistManager.setPlayingNow(playlist.findIndex((item) => item.bvid === song.bvid));
-                        document.querySelector("#function-list .player").click();
-                    } else {
-                        this.playlistManager.addSong(song);
-                        this.playlistManager.setPlayingNow(playlist.length - 1, false);
-                        this.uiManager.renderPlaylist();
-                        document.querySelector("#function-list .player").click();
-                    }
-                }
-            });
+                });
 
-            listElement.appendChild(div);
+                listElement.appendChild(div);
+            } catch (error) {
+                console.error("渲染收藏歌曲时出错:", error, song);
+            }
         });
     }
 }

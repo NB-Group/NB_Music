@@ -36,11 +36,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  
-  .list-container {
-    display: flex;
-    gap: 10px;
-  }
 }
 
 .section-header h2 {

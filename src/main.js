@@ -264,7 +264,7 @@ function createWindow() {
     });
     
     // 创建托盘
-    createTrayMenu(win);
+    const tray = createTrayMenu(win);
     
     // 当窗口准备好显示时才显示
     win.once('ready-to-show', () => {
@@ -285,7 +285,7 @@ function createWindow() {
     });
 
     // 处理第二个实例启动的情况
-    app.on("second-instance", (event, commandLine) => {
+    app.on("second-instance", (event, commandLine, workingDirectory) => {
         // 如果主窗口存在，确保它被显示、恢复并获得焦点
         if (win) {
             if (!win.isVisible()) win.show();
@@ -401,9 +401,9 @@ function formatCookieString(cookies) {
 
 app.whenReady().then(async () => {
     if (!app.isPackaged) {
-        // require('electron-reload')(__dirname, {
-        //     electron: path.join(process.cwd(), "node_modules", ".bin", "electron")
-        // });
+        require('electron-reload')(__dirname, {
+            electron: path.join(process.cwd(), "node_modules", ".bin", "electron")
+        });
     }
     
     // 存储主窗口的引用
@@ -435,6 +435,11 @@ app.on('before-quit', () => {
     // 标记应用正在退出，这样可以防止窗口的关闭事件被阻止
     app.isQuitting = true;
 });
+if (!app.isPackaged) {
+    electronReload(__dirname, {
+        electron: path.join(process.cwd(), "node_modules", ".bin", "electron")
+    });
+}
 
 function setupIPC() {
     ipcMain.handle('get-app-version', () => {
@@ -471,5 +476,17 @@ function setupIPC() {
     ipcMain.on('quit-application', () => {
         app.isQuitting = true;
         app.quit();
+    });
+
+    // 处理获取B站Cookie的请求
+    ipcMain.handle('get-bilibili-cookies', async () => {
+        try {
+            // 获取存储的cookies或通过puppeteer获取新的
+            const cookies = await getBilibiliCookies();
+            return cookies;
+        } catch (error) {
+            console.error('获取B站cookies失败:', error);
+            return '';
+        }
     });
 }

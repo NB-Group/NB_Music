@@ -181,7 +181,7 @@ class AudioPlayer {
 
     async play() {
         try {
-            if (!this.audio.getAttribute('src')) {
+            if (!this.audio.src) {
                 if (this.uimanager) {
                     this.uimanager.showNotification("无音频链接", "warning");
                 }
@@ -198,6 +198,15 @@ class AudioPlayer {
                 playButton.classList = "play playing";
                 await this.audioPlay();
                 playButton.classList = "play played";
+                
+                // 更新媒体信息
+                this.updateMediaSessionMetadata();
+                
+                // 分发songchange事件
+                this.dispatchEvent('songchange', {
+                    index: this.playlistManager.playingNow,
+                    song: this.playlistManager.playlist[this.playlistManager.playingNow]
+                });
             } else {
                 // 立即更新UI，提供即时反馈
                 playButton.classList = "play pausing";
@@ -246,6 +255,12 @@ class AudioPlayer {
         }
         
         this.playlistManager.setPlayingNow(prevIndex);
+        
+        // 分发songchange事件
+        this.dispatchEvent('songchange', {
+            index: this.playlistManager.playingNow,
+            song: this.playlistManager.playlist[this.playlistManager.playingNow]
+        });
     }
     
     next() {
@@ -276,6 +291,12 @@ class AudioPlayer {
         }
         
         this.playlistManager.setPlayingNow(nextIndex);
+        
+        // 分发songchange事件
+        this.dispatchEvent('songchange', {
+            index: this.playlistManager.playingNow,
+            song: this.playlistManager.playlist[this.playlistManager.playingNow]
+        });
     }
 
     // 设置 settingManager 的方法
@@ -318,6 +339,25 @@ class AudioPlayer {
             this.volumeInterval = null;
         }
         this.audio.volume = 1;
+    }
+
+    updateMediaSessionMetadata() {
+        if ("mediaSession" in navigator && 
+            this.playlistManager && 
+            this.playlistManager.playlist && 
+            this.playlistManager.playlist[this.playlistManager.playingNow]) {
+            
+            const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
+            
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentSong.title || '未知歌曲',
+                artist: currentSong.artist || '未知艺术家',
+                album: currentSong.album || '',
+                artwork: [
+                    { src: currentSong.coverUrl || '../img/NB_Music.png' }
+                ]
+            });
+        }
     }
 }
 
