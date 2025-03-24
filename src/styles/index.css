@@ -18,6 +18,7 @@
 @import './components/videoplayer.css';   /* 添加视频播放器样式 */
 @import './components/localimport.css';   /* 本地导入样式 */
 @import './components/playerstates.css';  /* 播放器状态样式 */
+@import './components/login.css';  /* 登录界面样式 */
 
 /* 导入动画 */
 @import './components/animations.css';    /* 动画样式 */

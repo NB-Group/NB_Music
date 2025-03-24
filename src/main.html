@@ -151,17 +151,28 @@
     </div>
   </div>
   <div class="dialog-bg hide" id="loginDialog">
-    <div class="dialog">
+    <div class="dialog" id="qrcodeLogin">
       <h2>扫码登录</h2>
       <div class="dialog-content">
         <div class="qrcode-container">
           <canvas id="qrcode"></canvas>
           <div class="qrcode-status">请使用哔哩哔哩客户端扫码登录</div>
+          <a href="#" id="switchBrowser" class="switch-method">使用网页登录</a>
         </div>
       </div>
       <div class="dialog-footer">
         <button id="refreshQRCode" class="dialog-btn dialog-btn-secondary">刷新</button>
         <button id="cancelLogin" class="dialog-btn dialog-btn-primary">取消</button>
+      </div>
+    </div>
+    <div class="dialog hide" id="browserLogin">
+      <h2>网页登录</h2>
+      <div class="dialog-content">
+        <a href="#" id="switchQrcode" class="switch-method">使用扫码登录</a>
+      </div>
+      <div class="dialog-footer">
+        <button id="reopenLoginPage" class="dialog-btn dialog-btn-secondary">重新打开授权页面</button>
+        <button id="cancelLogin2" class="dialog-btn dialog-btn-primary">取消</button>
       </div>
     </div>
   </div>
@@ -781,6 +792,10 @@
         <span>设置</span>
       </a>
     </div>
+  </div>
+  <div class="account-options-container">
+    <div class="option" id="account-logout">退出登录</div>
+  </div>
 
 </body>
 <script src="./script.js"></script>

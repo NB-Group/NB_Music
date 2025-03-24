@@ -48,6 +48,7 @@
         "jss": "^10.10.0",
         "jss-preset-default": "^10.10.0",
         "md5": "^2.3.0",
+        "open": "^7.0.0",
         "postcss": "^8.5.3",
         "puppeteer": "^24.0.0",
         "qrcode": "^1.5.4"

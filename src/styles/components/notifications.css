@@ -116,3 +116,42 @@
 .selected {
   background: var(--rgba-16);
 }
+
+.account-options-container {
+  position: absolute;
+  top: 70px;
+  left: 85.3%;
+  width: 8%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--mica);
+  border-radius: 8px;
+  margin-top: 4px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-1);
+  z-index: 1000;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 8px 32px var(--bg-1);
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+.account-options-container.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.account-options-container>.option {
+  padding: 6px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.account-options-container>.option:hover,
+.selected {
+  background: var(--rgba-16);
+}

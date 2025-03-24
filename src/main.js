@@ -3,6 +3,13 @@ const puppeteer = require("puppeteer");
 const Storage = require("electron-store");
 const { autoUpdater } = require("electron-updater");
 const storage = new Storage();
+const axios = require("axios");
+const fs = require("fs");
+const https = require("https");
+
+let browserAuthServer = null;
+
+
 function parseCommandLineArgs() {
     const args = process.argv.slice(1);
     const showWelcomeArg = args.includes("--show-welcome");
@@ -373,14 +380,7 @@ function createWindow() {
             saveCookies(cookies.join(";"));
 
             // 设置请求头
-            session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-                if (details.url.includes("bilibili.com") || details.url.includes("bilivideo.cn") || details.url.includes("bilivideo.com")) {
-                    details.requestHeaders["Cookie"] = cookies.join(";");
-                    details.requestHeaders["referer"] = "https://www.bilibili.com/";
-                    details.requestHeaders["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
-                }
-                callback({ requestHeaders: details.requestHeaders });
-            });
+            setBilibiliRequestCookie(cookies.join(";"));
 
             win.webContents.send("cookies-set", true);
         } catch (error) {
@@ -396,6 +396,110 @@ function createWindow() {
             } else {
                 win.webContents.openDevTools();
             }
+        }
+    });
+
+
+    ipcMain.on('get-cookies', async (event) => {
+        win.webContents.send('get-cookies-success', loadCookies());
+    });
+
+    ipcMain.on('logout', async (event) => {
+        storage.delete("cookies");
+        win.webContents.send('logout-success');
+
+        setBilibiliRequestCookie("");
+    });
+
+    ipcMain.on('start-browser-auth-server', async (event) => {
+        if (browserAuthServer === null) {
+            browserAuthServer = https.createServer({
+                key: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'privkey.pem')), // 私钥
+                cert: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'fullchain.pem')) // 证书
+            }, function (request, response) {
+                if (request.url === '/callback') {
+                    let cookieString = request.headers.cookie + ';nbmusic_loginmode=browser';
+
+                    // 直接保存cookie字符串
+                    saveCookies(cookieString);
+
+                    // 设置请求头
+                    setBilibiliRequestCookie(cookieString);
+
+                    response.writeHead(200, { 'Content-Type': 'application/json' });
+                    response.end(JSON.stringify({
+                        status: 0,
+                        data: {
+                            isLogin: true,
+                            message: '登录成功'
+                        }
+                    }));
+
+                    win.webContents.send('cookies-set', true);
+
+                    browserAuthServer.close();
+                    browserAuthServer = null;
+                } else if (request.url === '/background.jpg') {
+                    response.writeHead(200, { 'Content-Type': 'image/jpeg' });
+                    response.end(fs.readFileSync(path.join(__dirname, '..', 'img', '2020-bdf.jpg')));
+                } else if (request.url === '/HarmonyOS_Sans.woff') {
+                    response.writeHead(200, { 'Content-Type': 'font/woff' });
+                    response.end(fs.readFileSync(path.join(__dirname, '..', 'assets', 'HarmonyOS_Sans_Medium.woff')));
+                } else if (request.url === '/getUserInfo') {
+                    axios.get('https://api.bilibili.com/x/web-interface/nav', {
+                        headers: {
+                            "Cookie": request.headers.cookie,
+                            "Referer": "https://www.bilibili.com/",
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+                        }
+                    }).then(res => {
+                        const data = res.data.data;
+
+                        response.writeHead(200, { 'Content-Type': 'application/json' });
+                        if (data.isLogin) {
+                            response.end(JSON.stringify({
+                                status: 0,
+                                data: {
+                                    isLogin: true,
+                                    avatar: data.face,
+                                    name: data.uname,
+                                    mid: data.mid,
+                                }
+                            }));
+                        } else {
+                            response.end(JSON.stringify({
+                                status: 0,
+                                data: {
+                                    isLogin: false
+                                }
+                            }));
+                        }
+                    }).catch(error => {
+                        console.error('获取用户信息失败:', error);
+
+                        response.writeHead(500, { 'Content-Type': 'application/json' });
+                        response.end(JSON.stringify({
+                            status: -1,
+                            data: {
+                                message: "服务内部错误"
+                            }
+                        }));
+                    });
+                } else if (request.url === '/favicon.ico') {
+                    response.writeHead(200, { 'Content-Type': 'image/x-icon' });
+                    response.end(fs.readFileSync(path.join(__dirname, '..', 'icons', 'icon.ico')));
+                } else {
+                    response.writeHead(200, { 'Content-Type': 'text/html' });
+                    response.end(fs.readFileSync(path.join(__dirname, 'login.html')));
+                }
+            }).listen(62687);
+        }
+    });
+
+    ipcMain.on('close-browser-auth-server', async (event) => {
+        if (browserAuthServer !== null) {
+            browserAuthServer.close();
+            browserAuthServer = null;
         }
     });
 
@@ -422,14 +526,7 @@ app.whenReady().then(async () => {
 
     const cookieString = await getBilibiliCookies(cmdArgs.noCookies);
     if (cookieString) {
-        session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-            if (details.url.includes("bilibili.com") || details.url.includes("bilivideo.cn") || details.url.includes("bilivideo.com")) {
-                details.requestHeaders["Cookie"] = cookieString;
-                details.requestHeaders["referer"] = "https://www.bilibili.com/";
-                details.requestHeaders["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
-            }
-            callback({ requestHeaders: details.requestHeaders });
-        });
+        setBilibiliRequestCookie(cookieString);
     }
 });
 app.on("window-all-closed", () => {
@@ -488,5 +585,18 @@ function setupIPC() {
     ipcMain.on("quit-application", () => {
         app.isQuitting = true;
         app.quit();
+    });
+}
+
+function setBilibiliRequestCookie(cookieString) {
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+        if (details.url.includes("bilibili.com") ||
+            details.url.includes("bilivideo.cn") ||
+            details.url.includes("bilivideo.com")) {
+            details.requestHeaders["Cookie"] = cookieString;
+            details.requestHeaders["referer"] = "https://www.bilibili.com/";
+            details.requestHeaders["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
+        }
+        callback({ requestHeaders: details.requestHeaders });
     });
 }

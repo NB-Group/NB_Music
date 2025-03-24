@@ -167,27 +167,6 @@ select:disabled {
   cursor: not-allowed;
 }
 
-/* 二维码容器样式 */
-.qrcode-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-}
-
-#qrcode {
-  padding: 12px;
-  background: white;
-  border-radius: 8px;
-}
-
-.qrcode-status {
-  font-size: 14px;
-  color: var(--text);
-  text-align: center;
-}
-
 /* 更新容器 - 重新设计 */
 .update-container {
   position: fixed;
