@@ -29,6 +29,7 @@ class SettingManager {
         this.listeners = new Map();
         this.STORAGE_KEY = 'app_settings';
         this.loadSettings();
+        this.fixSettingsValue();
         this.setupSettingListeners();
         this.setupAboutLinks();
         this.setAppVersion();
@@ -180,7 +181,7 @@ class SettingManager {
         // 初始应用主题色
         this.applyThemeColors();
 
-        this.sliderSetting('micaOpacity', '50%', "透明度已重置", (value) => `${Math.round(value * 100)}%`, () => this.applyMicaOpacity())        
+        this.sliderSetting('micaOpacity', '50%', "透明度已重置", (value) => `${Math.round(value * 100)}%`, () => this.applyMicaOpacity());
     }
 
     sliderSetting(id, defaultValue, resetText, value2display, afterValueApply) {
@@ -214,7 +215,7 @@ class SettingManager {
                 this.showNotification(resetText, 'success');
             });
         }
-        afterValueApply()
+        afterValueApply();
     }
 
     applyThemeColors() {
@@ -232,7 +233,14 @@ class SettingManager {
         const root = document.documentElement;
         root.style.setProperty('--font-family-custom', this.settings.fontFamilyCustom);
         root.style.setProperty('--font-family-fallback', this.settings.fontFamilyFallback);
-        console.log(`DEBUG: 设置字体为 ${this.settings.fontFamilyCustom}, ${this.settings.fontFamilyFallback}`);
+    }
+
+    // 这里神秘小代码发力了 不知道为什么
+    fixSettingsValue() {
+        if (this.settings.fontFamilyCustom === "undefined" || typeof(this.settings.fontFamilyCustom) !== "string")
+            this.settings.fontFamilyCustom = SettingManager.DEFAULT_FONT_FAMILY_CUSTOM;
+        if (this.settings.fontFamilyFallback === "undefined" || typeof(this.settings.fontFamilyFallback) !== "string")
+            this.settings.fontFamilyFallback = SettingManager.DEFAULT_FONT_FAMILY_FALLBACK;
     }
 
     applySettingChange(key, value) {

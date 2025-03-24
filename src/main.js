@@ -1,5 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, Menu, Tray, shell } = require("electron");
-const path = require("path");
+const { app, BrowserWindow, session, ipcMain, Menu, Tray, shell, nativeImage } = require("electron");const path = require("path");
 const puppeteer = require("puppeteer");
 const electronReload = require("electron-reload");
 const Storage = require("electron-store");
@@ -124,6 +123,16 @@ function createTrayMenu(win) {
     const iconPath = getIconPath();
     const tray = new Tray(iconPath);
     
+    if (process.platform === 'darwin') {        
+        // 设置托盘图标大小
+        const trayIcon = nativeImage.createFromPath(iconPath);
+        const resizedTrayIcon = trayIcon.resize({
+            width: 16,
+            height: 16
+        });
+        tray.setImage(resizedTrayIcon);
+    }
+
     // 初始化托盘状态
     let isPlaying = false;
     let currentSong = { title: "未在播放", artist: "" };
@@ -434,6 +443,18 @@ app.on("window-all-closed", () => {
 app.on('before-quit', () => {
     // 标记应用正在退出，这样可以防止窗口的关闭事件被阻止
     app.isQuitting = true;
+});
+
+app.on("activate", () => {
+    if (global.mainWindow) {
+        if (!global.mainWindow.isVisible()) {
+            global.mainWindow.show();
+        }
+        if (global.mainWindow.isMinimized()) {
+            global.mainWindow.restore();
+        }
+        global.mainWindow.focus();
+    }
 });
 
 function setupIPC() {
