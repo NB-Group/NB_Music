@@ -52,7 +52,6 @@ class PlaylistManager {
                     }
                  }
                 nextIndex = this.shuffledlist.shift();
-                log.info(nextIndex);
                 // 检测是否已经循环完一轮
                 if (!nextIndex) {
                     // 在重新打乱前临时放第一首
