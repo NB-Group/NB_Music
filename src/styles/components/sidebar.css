@@ -4,11 +4,10 @@
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-1);
   padding: 20px 0;
-  display: block !important;
   grid-column: 1;
   grid-row: 1 / span 2;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;
+  display: flex;
   flex-direction: column;
   height: 100%;
 }

@@ -131,8 +131,9 @@ class LyricsPlayer {
 
     setVisibility(visible) {
         if (this.lyricsContainer) {
-            this.lyricsContainer.style.opacity = visible ? '1' : '0';
-            this.lyricsContainer.style.width = visible ? '' : '0';
+            // this.lyricsContainer.style.opacity = visible ? '1' : '0';
+            // this.lyricsContainer.style.width = visible ? '' : '0';
+            this.lyricsContainer.style.display = visible ? "" : "none";
             
             // 如果正在显示并且容器可见，刷新布局
             if (visible && this.isVisible) {
@@ -319,7 +320,7 @@ class LyricsPlayer {
         
         // 循环所有歌词数据
         let lyricIndex = 0;
-        this.parsedData.forEach((data, dataIndex) => {
+        this.parsedData.forEach((data) => {
             if (data.type === "lyric") {
                 const line = lyricElements[lyricIndex]; // 使用歌词索引而不是数据索引
                 if (!line) return;

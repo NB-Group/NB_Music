@@ -314,7 +314,7 @@ class UIManager {
                 }
             }
         });
-        this.settingManager.addListener("extractTitle", (newValue, oldValue) => {
+        this.settingManager.addListener("extractTitle", () => {
             this.renderPlaylist();
         });
 
@@ -490,21 +490,35 @@ class UIManager {
 
         // 侧边栏点击事件
         document.addEventListener("dblclick", (event) => {
-            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar")
-                 && this.settingManager.getSetting('hideSidebar')=="true") {
-                document.querySelector(".sidebar").classList.add("fadeout");
+            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar") && this.settingManager.getSetting("hideSidebar") == "true") {
+                document.querySelector(".sidebar").style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.04, 0.92, 0.4, 0.97)";
+                document.querySelector(".sidebar").parentElement.style.gridTemplateColumns = "0 auto";
+                document.querySelector(".sidebar").style.opacity = "0";
+                // document.querySelector(".sidebar").style.display = "none";
             }
-            if (!event.target.closest(".titbar") && this.settingManager.getSetting('hideTitbar')=="true") {
-               document.querySelectorAll(".titbar .fadein").forEach((fadeItem) => {
-                fadeItem.classList.add("fadeout");
-               })
+            if (!event.target.closest(".titbar") && this.settingManager.getSetting("hideTitbar") == "true") {
+                document.querySelectorAll(".titbar .fadein").forEach((fadeItem) => {
+                    fadeItem.classList.add("fadeout");
+                });
             }
         });
 
         document.querySelectorAll(".fadein").forEach((fadeItem) => {
             fadeItem.addEventListener("mouseover", () => {
                 fadeItem.classList.remove("fadeout");
-            })
+            });
+        });
+
+        // 专为侧边栏设计
+
+        window.addEventListener("mousemove", (e) => {
+            if (this.settingManager.getSetting("hideSidebar") == "true") {
+                if (e.clientX < 260 && document.querySelector(".sidebar").style.opacity == "0") {
+                    document.querySelector(".sidebar").style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.88, 0.01, 0.95, 0.09)";
+                    document.querySelector(".sidebar").parentElement.style.gridTemplateColumns = "260px auto";
+                    document.querySelector(".sidebar").style.opacity = "1";
+                }
+            }
         });
 
         // 列表焦点效果
@@ -684,7 +698,7 @@ class UIManager {
             playlistElement.appendChild(div);
         });
     }
-    createSongElement(song, bvid, { isLove = true, isDelete = true, isExtract = false } = {}) {
+    createSongElement(song, bvid, { isLove = true, isDelete = true } = {}) {
         const div = document.createElement("div");
         div.classList.add("song");
         div.setAttribute("data-bvid", bvid);
@@ -1037,10 +1051,12 @@ class UIManager {
                     break;
                 case "show-settings":
                     this.show(".setting");
+                    document.querySelector("span.focs").style.top = "147px";
                     break;
                 case "about":
                     // 滚动到关于部分
                     this.show(".setting");
+                    document.querySelector("span.focs").style.top = "147px";
                     setTimeout(() => {
                         const aboutCard = document.querySelector(".about-card");
                         if (aboutCard) {

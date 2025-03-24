@@ -136,7 +136,7 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.buttons div:hover {
+.buttons>div:hover {
   transform: scale(1.1) translateY(-2px);
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }

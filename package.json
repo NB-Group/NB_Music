@@ -10,7 +10,8 @@
         "run": "electron .",
         "debug": "electron --inspect=5858 .",
         "debug-brk": "electron --inspect-brk=5858 .",
-        "run:clear": "electron . --clear-storage"
+        "run:clear": "electron . --clear-storage",
+        "run:no-reload": "electron . --no-reload"
     },
     "keywords": [],
     "author": {

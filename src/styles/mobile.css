@@ -2,6 +2,13 @@
  * NB Music 移动端适配样式
  */
 
+ /* 修复桌面端显示部分移动端界面的bug */
+@media (min-width: 767px) {
+    .mica > *[class^="mobile"] {
+        display: none;
+    }
+}
+
 /* 移动设备媒体查询 */
 @media (max-width: 767px) {
     /* 基础样式调整 */
@@ -36,8 +43,8 @@
     }
 
     body.mobile-view .titbar > .search.collapsed::before {
-        content: '\F52A';
-        font-family: 'bootstrap-icons';
+        content: "\F52A";
+        font-family: "bootstrap-icons";
         position: absolute;
         top: 50%;
         left: 50%;
@@ -255,7 +262,7 @@
     }
 
     .mobile-navbar a.active::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 50%;
@@ -267,7 +274,7 @@
     }
 
     .mobile-navbar a::before {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 50%;
@@ -403,7 +410,7 @@
     }
 
     .mobile-playlist-content .song::after {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0;
         z-index: -1;
@@ -477,23 +484,39 @@
 
     /* 添加页面转场动画 */
     @keyframes page-slide-in-right {
-        from { transform: translateX(100%); }
-        to { transform: translateX(0); }
+        from {
+            transform: translateX(100%);
+        }
+        to {
+            transform: translateX(0);
+        }
     }
 
     @keyframes page-slide-in-left {
-        from { transform: translateX(-100%); }
-        to { transform: translateX(0); }
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(0);
+        }
     }
-    
+
     @keyframes page-slide-out-right {
-        from { transform: translateX(0); }
-        to { transform: translateX(100%); }
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(100%);
+        }
     }
-    
+
     @keyframes page-slide-out-left {
-        from { transform: translateX(0); }
-        to { transform: translateX(-100%); }
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-100%);
+        }
     }
 
     body.mobile-view .content > div:not(.hide) {
