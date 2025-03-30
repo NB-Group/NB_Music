@@ -11,7 +11,7 @@
 </head>
 
 <body>
-  <div class="titbar">
+  <div class="titbar" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 1))">
     <div style="display: flex">
       <img src="../icons/NB Music.png" class="icon" />
       <p>NB Music</p>
@@ -92,7 +92,7 @@
           </div>
         </div>
         <div class="input-group">
-          <label>自定义歌词搜索:</label>
+          <label for="customLyricSearch">自定义歌词搜索:</label>
           <select id="lyricSearchType">
             <option value="auto">使用视频标题自动搜索</option>
             <option value="custom">手动输入搜索关键词</option>
@@ -168,8 +168,8 @@
     <div class="dialog hide" id="browserLogin">
       <h2>网页登录</h2>
       <div class="dialog-content">
-        <div class="login-tips" style="margin-top: 15px">NB Music将打开浏览器进行进一步授权</div>
-        <div class="login-tips">我们将修改系统中的Hosts文件以达到劫持Cookie的目的</div>
+        <div class="login-tips">NB Music将打开浏览器进行进一步授权</div>
+        <div class="login-tips">如果出现根证书导入窗口，请点击“是”以导入根证书</div>
         <div class="login-tips" style="margin-bottom: 7px;">NB Music不会存储您的账号信息，所有认证均通过官方接口完成</div>
         <a href="#" id="switchQrcode" class="switch-method">使用扫码登录</a>
       </div>
@@ -354,7 +354,7 @@
                   <div class="select-item" data-value="2">2x</div>
                 </div>
               </div>
-              <div class="play-container" style="position: relative;">
+              <div class="play-container">
                 <button class="import-btn"><i class="bi bi-download"></i></button>
                 <button class="play-video-btn import-btn" id="playVideoBtn"><i class="bi bi-film"></i></button>
                 <button class="import-btn" id="VolCtrlBtn"><i class="bi bi-volume-down-fill" style="transform: scale(1.5);"></i></button>
@@ -472,7 +472,7 @@
                 <a href="#" class="about-link" id="open-welcome"> <i class="bi bi-emoji-smile"></i> 欢迎指南 </a>
               </div>
               <div class="dev-info">
-                <div class="dev-title">主要开发团队</div>
+                <div class="dev-title">开发团队</div>
                 <div class="dev-team">
                   由 <span class="dev-badge"><i class="bi bi-mortarboard"></i> 初中生</span>
                   开发：
@@ -480,17 +480,20 @@
                   <span class="dev-badge">User782Tec</span>
                 </div>
               </div>
-
-              <!-- 新增：贡献者展示区域 -->
-              <div class="contributors-section">
-                <div class="contributors-title">
-                  <i class="bi bi-people-fill"></i> 项目贡献者
+              <!-- 常见问题帮助 -->
+              <div class="help-content">
+                <div class="help-section">
+                  <div class="help-title"><i class="bi bi-music-note-list"></i> 如何导入音乐？</div>
+                  <div class="help-text">在顶部搜索框中搜索歌曲名称或将B站收藏夹导入为歌单。点击左侧歌单页面中的导入按钮，输入B站收藏夹链接或ID即可快速导入。</div>
                 </div>
-                <div class="contributors-description">
-                  感谢所有为NB Music做出贡献的开发者
+                <div class="help-section">
+                  <div class="help-title"><i class="bi bi-exclamation-triangle"></i> 歌曲无法播放？</div>
+                  <div class="help-text">请尝试以下方法：1. 重新点击播放按钮 2. 登录账号以获取更高音质的音源 3. 在设置中关闭音频淡入淡出功能 4.
+                    重启应用。如问题持续，请在GitHub仓库提交issue。</div>
                 </div>
-                <div class="contributors-grid" id="contributors-container">
-                  <div class="loading-contributors">加载中...</div>
+                <div class="help-section">
+                  <div class="help-title"><i class="bi bi-person-circle"></i> 登录有什么用？</div>
+                  <div class="help-text">登录B站账号后，您可以直接访问自己的收藏夹内容、获取大会员的Hi-res和4k。NB Music不会存储您的账号信息，所有认证均通过官方接口完成。</div>
                 </div>
               </div>
             </div>
@@ -619,22 +622,6 @@
               </div>
             </div>
 
-            <div class="setting-item">
-              <div class="setting-info">
-                <i class="bi bi-arrows-fullscreen"></i>
-                <div class="words">
-                  <div class="setting-name">自动全屏</div>
-                  <div class="setting-descrition">是否打开软件就自动全屏</div>
-                </div>
-              </div>
-              <div class="setting-value">
-                <nav data-nav-id="nav-auto-maximize">
-                  <a data-key="autoMaximize" data-value="true">启用</a>
-                  <a data-key="autoMaximize" data-value="false" class="active">禁用</a>
-                </nav>
-              </div>
-            </div>
-
             <!-- 音频播放设置 -->
             <div class="setting-category">
               <div class="setting-category-title"><i class="bi bi-music-note-beamed"></i> 播放设置</div>
@@ -653,40 +640,6 @@
                   <nav data-nav-id="nav-lyrics">
                     <a class="active" data-key="lyricsEnabled" data-value="true">显示歌词</a>
                     <a data-key="lyricsEnabled" data-value="false">隐藏歌词</a>
-                  </nav>
-                </div>
-              </div>
-
-              <!-- 在歌词显示设置下方添加歌词来源切换选项 -->
-              <div class="setting-item">
-                <div class="setting-info">
-                  <i class="bi bi-music-note-list"></i>
-                  <div class="words">
-                    <div class="setting-name">歌词来源</div>
-                    <div class="setting-descrition">选择歌词来源类型</div>
-                  </div>
-                </div>
-                <div class="setting-value">
-                  <nav data-nav-id="nav-lyric-source">
-                    <a class="active" data-key="lyricSource" data-value="netease">网易云歌词</a>
-                    <a data-key="lyricSource" data-value="bilibili">B站字幕</a>
-                  </nav>
-                </div>
-              </div>
-
-              <!-- 新增循环歌词同步设置 -->
-              <div class="setting-item">
-                <div class="setting-info">
-                  <i class="bi bi-arrow-repeat"></i>
-                  <div class="words">
-                    <div class="setting-name">循环歌词同步</div>
-                    <div class="setting-descrition">自动同步B站循环视频的歌词（使歌词重复播放）</div>
-                  </div>
-                </div>
-                <div class="setting-value">
-                  <nav data-nav-id="nav-loop-lyrics">
-                    <a class="active" data-key="loopLyricsEnabled" data-value="true">启用</a>
-                    <a data-key="loopLyricsEnabled" data-value="false">禁用</a>
                   </nav>
                 </div>
               </div>
@@ -720,6 +673,21 @@
                   <nav data-nav-id="nav-fade">
                     <a class="active" data-key="fadeEnabled" data-value="true">启用</a>
                     <a data-key="fadeEnabled" data-value="false">禁用</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <i class="bi bi-clock-history"></i>
+                  <div class="words">
+                    <div class="setting-name">保存播放进度</div>
+                    <div class="setting-descrition">记住歌曲的播放位置</div>
+                  </div>
+                </div>
+                <div class="setting-value">
+                  <nav data-nav-id="nav-save-progress">
+                    <a class="active" data-key="savePlaybackProgress" data-value="true">启用</a>
+                    <a data-key="savePlaybackProgress" data-value="false">禁用</a>
                   </nav>
                 </div>
               </div>
@@ -835,23 +803,6 @@
                   </nav>
                 </div>
               </div>
-              
-              <!-- 添加自动播放设置 -->
-              <div class="setting-item">
-                <div class="setting-info">
-                  <i class="bi bi-play-circle"></i>
-                  <div class="words">
-                    <div class="setting-name">启动自动播放</div>
-                    <div class="setting-descrition">启动软件时自动开始播放上次的歌曲</div>
-                  </div>
-                </div>
-                <div class="setting-value">
-                  <nav data-nav-id="nav-autoplay">
-                    <a data-key="autoPlayOnStartup" data-value="true">启用</a>
-                    <a class="active" data-key="autoPlayOnStartup" data-value="false">禁用</a>
-                  </nav>
-                </div>
-              </div>
             </div>
 
           </div>
@@ -888,7 +839,7 @@
         <i class="bi bi-heart"></i>
         <span>收藏</span>
       </a>
-      <a class="playlist-toggle"></a>
+      <a class="playlist-toggle">
         <i class="bi bi-list-ul"></i>
         <span>播放列表</span>
         <div class="count">0</div>
