@@ -1,0 +1,32 @@
+/* 导入变量 */
+@import './variables.css';
+
+/* 导入基础样式 */
+@import './base.css';
+
+/* 导入组件样式 */
+@import './components/titlebar.css';
+@import './components/sidebar.css';
+@import './components/player.css';
+@import './components/lyrics.css';
+@import './components/musiclist.css';
+@import './components/settings.css';
+@import './components/dialogs.css';
+@import './components/controls.css';
+@import './components/notifications.css';
+@import './components/dropdown.css';
+@import './components/videoplayer.css';   /* 添加视频播放器样式 */
+@import './components/localimport.css';   /* 本地导入样式 */
+@import './components/playerstates.css';  /* 播放器状态样式 */
+@import './components/login.css';  /* 登录界面样式 */
+@import './components/volumecontrol.css'; /* 音量控制样式 */
+
+/* 导入动画 */
+@import './components/animations.css';    /* 动画样式 */
+
+/* 导入工具 */
+@import './utilities.css';
+@import './mobile.css';
+
+/* 导入第三方库 */
+@import '../../node_modules/bootstrap-icons/font/bootstrap-icons.css';

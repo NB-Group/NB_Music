@@ -1,0 +1,32 @@
+/* 二维码容器样式 */
+.qrcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+}
+
+#qrcode {
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+}
+
+.login-tips {
+    font-size: 14px;
+    color: var(--text);
+    text-align: center;
+}
+
+.switch-method {
+    font-weight: bold;
+    transition: color 0.3s ease;
+    text-decoration: none;
+    color: #3e88f6;
+    font-size: 14px;
+}
+
+.switch-method:hover {
+    color: #39a9ff;
+}

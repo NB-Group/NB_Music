@@ -1,0 +1,578 @@
+/* 设置页面样式 */
+.setting {
+  padding: 24px;
+}
+
+.setting .title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* 设置内容布局 */
+.setting-content {
+  display: grid;
+  gap: 28px;
+}
+
+/* 设置分类标题 */
+.setting-category {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.setting-category-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-category-title i {
+  font-size: 20px;
+}
+
+.setting-category-description {
+  font-size: 14px;
+  color: var(--rgba-6);
+  margin-top: 4px;
+  margin-left: 28px;
+}
+
+/* 设置项组 */
+.setting-group {
+  display: grid;
+  gap: 16px;
+}
+
+/* 设置项样式 */
+.setting-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(20px);
+  transition: background-color 0.3s ease;
+  border: 1px solid var(--border-1);
+}
+
+.setting-item:hover {
+  background: var(--rgba-16);
+}
+
+/* 设置信息区域 */
+.setting-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.setting-info>i {
+  font-size: 24px;
+  color: var(--rgba-6);
+  margin: 12px;
+  background: linear-gradient(100deg, var(--theme-1), var(--theme-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: saturate(130%) brightness(1.1);
+}
+
+/* 设置文字区域 */
+.words>.setting-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.words>.setting-descrition {
+  font-size: 14px;
+  color: var(--rgba-6);
+}
+
+/* 设置值区域 */
+.setting-value {
+  display: flex;
+}
+
+/* 导航组件样式 - 升级版 */
+nav {
+  border-radius: 1.25rem;
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #eee;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+nav:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+nav a {
+  padding: 0.5rem 1rem;
+  position: relative;
+  color: rgba(255, 255, 255, 0.8);
+  isolation: isolate;
+  text-decoration: none;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.35s cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  transform-origin: center;
+  overflow: hidden;
+  user-select: none;
+  z-index: 1;
+  view-transition-name: none !important;
+}
+
+nav a:hover {
+  color: white;
+  transform: translateY(-1px);
+}
+
+nav a:active {
+  transform: translateY(1px);
+}
+
+nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(135deg, var(--theme-1), var(--theme-2));
+  border-radius: 0.75rem;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform, opacity;
+  transform: scale(0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  view-transition-name: none !important;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+
+nav a:hover::after {
+  opacity: 0.15;
+}
+
+nav a.active::before {
+  opacity: 1;
+  transform: scale(1);
+  view-transition-name: var(--vt-active);
+}
+
+nav a.active {
+  color: white;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+/* 浅色主题下的 nav 样式 */
+:root.light nav {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-1);
+}
+
+:root.light nav a {
+  color: rgba(60, 60, 60, 0.8);
+}
+
+:root.light nav a:hover {
+  color: var(--text);
+}
+
+:root.light nav a::before {
+  background-image: linear-gradient(135deg, var(--theme-1), var(--theme-2));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:root.light nav a::after {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 1) 0%, transparent 70%);
+}
+
+:root.light nav a.active {
+  color: white;
+}
+
+/* 添加导航内图标支持 */
+nav a i {
+  margin-right: 0.4rem;
+  font-size: 0.9em;
+  opacity: 0.9;
+  transition: transform 0.3s ease;
+  vertical-align: -0.1em;
+}
+
+nav a:hover i {
+  transform: translateY(-1px);
+}
+
+nav a.active i {
+  opacity: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  nav {
+    padding: 0.5rem;
+    gap: 0.3rem;
+  }
+  
+  nav a {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* 添加动画效果 */
+@keyframes nav-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--theme-1-rgb), 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--theme-1-rgb), 0);
+  }
+}
+
+nav a.active:hover::before {
+  animation: nav-pulse 2s infinite;
+}
+
+/* 可访问性提升：键盘焦点样式 */
+nav a:focus-visible {
+  outline: 2px solid var(--theme-2);
+  outline-offset: 2px;
+}
+
+/* 缓存清理按钮样式 */
+.cache-clear-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-1);
+  background: var(--color-14);
+  color: var(--text);
+  border-radius: 1.25rem;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: background 0.2s ease;
+}
+
+.cache-clear-btn:hover {
+  background: var(--bg);
+}
+
+/* 重置按钮样式 */
+.reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--rgba-16);
+  border: 1px solid var(--border-1);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.reset-btn:hover {
+  background: var(--hover);
+  transform: translateY(-1px);
+}
+
+.reset-btn:active {
+  transform: translateY(0);
+}
+
+#resetMicaOpacity {
+  padding: 4px;
+  margin-left: 4px;
+}
+
+/* 关于卡片样式 */
+.about-card {
+  border-radius: 12px;
+  padding: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.app-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.app-info {
+  flex: 1;
+}
+
+.app-name {
+  font-size: 24px;
+  font-weight: 600;
+  background: linear-gradient(100deg, var(--theme-1), var(--theme-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: saturate(130%) brightness(1.1);
+}
+
+.app-version {
+  font-size: 14px;
+  color: var(--rgba-6);
+  margin-top: 4px;
+}
+
+.about-description {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.about-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--color-14);
+  color: var(--text);
+  border: 1px solid var(--border-1);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.about-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg);
+}
+
+.about-link i {
+  font-size: 16px;
+}
+
+.dev-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.dev-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--rgba-6);
+}
+
+.dev-team {
+  font-size: 14px;
+  color: var(--text);
+  padding: 4px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+  border: 1px solid var(--border-1);
+}
+
+.keyboard-shortcut {
+  margin-top: 12px;
+}
+
+.shortcut-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+}
+
+.key {
+  background: var(--rgba-16);
+  border: 1px solid var(--border-1);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+/* 帮助内容样式 */
+.help-content {
+  display: grid;
+  gap: 16px;
+}
+
+.help-section {
+  background: var(--rgba-16);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-1);
+}
+
+.help-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-title i {
+  color: var(--theme-2);
+}
+
+.help-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rgba-6);
+}
+
+/* 版本徽章 */
+.version-badge {
+  background: linear-gradient(100deg, var(--theme-1), var(--theme-2));
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 颜色选择器样式 */
+.color-pickers {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.color-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-picker {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border-1);
+}
+
+/* 滑块容器样式 */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 200px;
+  height: 6px;
+  background: var(--rgba-16);
+  border-radius: 3px;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(100deg, var(--theme-1), var(--theme-2));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+#opacityValue {
+  min-width: 40px;
+  text-align: center;
+  font-size: 14px;
+}

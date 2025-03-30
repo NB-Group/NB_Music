@@ -1,0 +1,153 @@
+/* 隐藏元素 */
+.hide {
+  display: none !important;
+}
+
+/* 淡入淡出 */
+.fadein {
+  transition: opacity var(--transition-medium) ease-out;
+  opacity: 1;
+}
+
+.fadeout {
+  opacity: 0 !important;
+}
+
+/* 增强版滚动条样式 */
+::-webkit-scrollbar:hover {
+  background-color: var(--card);
+}
+
+::-webkit-scrollbar {
+  border-radius: 7px;
+  height: 14px;
+  width: 14px;
+}
+
+::-webkit-scrollbar-corner {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border: 4px solid transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rgba-9);
+  background-clip: padding-box;
+  border: 6px solid transparent;
+  border-radius: 10px;
+  transition: border var(--transition-fast) ease;
+}
+
+/* 滚动条反馈优化 */
+::-webkit-scrollbar-thumb:active {
+  background-color: rgba(var(--theme-1-rgb), 0.7);
+  border: 3px solid transparent;
+}
+
+/* 媒体查询 */
+@media screen and (max-width: 1200px) {
+  .mica {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .player-content .cover {
+    width: 250px;
+    height: 250px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .mica {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}
+
+/* 增强版按钮样式 */
+.btn {
+  padding: 8px 24px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(0deg, var(--theme-1), var(--theme-2));
+  color: var(--color-14);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-medium) cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--button-shadow);
+}
+
+.btn:hover {
+  filter: var(--state-hover);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--elevation-2);
+}
+
+.btn:active {
+  filter: var(--state-active);
+  transform: translateY(1px) scale(var(--active-scale));
+  box-shadow: var(--elevation-1);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.btn:focus::after {
+  animation: ripple 1s ease-out;
+}
+
+/* 内容溢出处理 */
+.content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform var(--transition-medium) var(--animation-timing);
+}
+
+.content>.music-list,
+.content>.love-list,
+.content>.search-result,
+#playing-list,
+#playlistList,
+#songList,
+.setting {
+  overflow-y: auto;
+  transform-origin: top center;
+  transition: opacity var(--transition-medium) ease,
+              transform var(--transition-medium) var(--animation-timing-bounce);
+}
+
+/* 平滑滚动 */
+* {
+  scroll-behavior: smooth;
+}
+
+/* 新增反馈效果类 */
+.clickable {
+  cursor: pointer;
+  transition: transform var(--transition-fast) ease,
+              filter var(--transition-fast) ease;
+}
+
+.clickable:hover {
+  filter: var(--state-hover);
+}
+
+.clickable:active {
+  transform: scale(var(--active-scale));

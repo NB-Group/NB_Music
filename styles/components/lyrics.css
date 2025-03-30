@@ -1,0 +1,374 @@
+/* 歌词容器样式 */
+#lyrics-container {
+  margin-top: 32px;
+  text-align: center;
+  overflow-y: auto;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--rgba-12);
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  position: relative; /* 添加相对定位以支持内部绝对定位元素 */
+  transition: opacity 0.3s ease, transform 0.5s ease; /* 添加过渡效果 */
+  /* 确保容器即使隐藏也保留尺寸信息 */
+  min-height: 300px;
+}
+
+#lyrics-container:hover {
+  transform: scale(1.02);
+}
+
+/* 当父容器隐藏时保持歌词容器的布局 */
+.hide #lyrics-container {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* 歌词滚动容器基础样式 */
+.lyrics-scroll-wrapper {
+  font-weight: 600;
+  width: 100%;
+  will-change: transform;
+  transform: translateZ(0) translateY(-20px);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 歌词行样式 */
+.lyric-line {
+  font-size: 18px;
+  line-height: 1.8;
+  margin: 8px 0;
+  min-height: 32px;
+  opacity: 0.6;
+  transform: scale(0.95);
+  transition: all 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
+  filter: blur(1px);
+  will-change: transform, opacity, filter, top;
+  position: absolute; /* 使用绝对定位以便独立控制位置 */
+  width: 100%;
+}
+
+/* 初始布局过渡效果 */
+.lyric-line.initial {
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 确保在父容器隐藏时保持行的位置 */
+.hide .lyric-line {
+  transition: none !important;
+}
+
+/* 隐藏的歌词行 */
+.lyric-line.hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* 激活的歌词行增强效果 */
+.lyric-line.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0) !important;
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  /* -webkit-text-fill-color: transparent; */
+  z-index: 10;
+  text-shadow: 0 2px 10px rgba(var(--theme-1-rgb), 0.2);
+  position: relative;
+  transition: all 0.5s var(--animation-timing-spring);
+}
+
+/* 添加高亮线条 */
+.lyric-line.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  transition: width 0.8s var(--animation-timing-bounce) 0.2s;
+}
+
+.lyric-line.active.show-line::after {
+  width: 40%;
+}
+
+/* 歌词行位置变化效果增强 */
+.lyric-line.before-3 { opacity: 0.2; transform: translateY(-160px) scale(0.7); filter: blur(1px); }
+.lyric-line.before-2 { opacity: 0.3; transform: translateY(-110px) scale(0.8); filter: blur(0.7px); }
+.lyric-line.before-1 { opacity: 0.5; transform: translateY(-60px) scale(0.9); filter: blur(0.3px); }
+.lyric-line.after-1 { opacity: 0.5; transform: translateY(60px) scale(0.9); filter: blur(0.3px); }
+.lyric-line.after-2 { opacity: 0.3; transform: translateY(110px) scale(0.8); filter: blur(0.7px); }
+.lyric-line.after-3 { opacity: 0.2; transform: translateY(160px) scale(0.7); filter: blur(1px); }
+.lyric-line.distant { opacity: 0; transform: translateY(200px) scale(0.6); filter: blur(2px); }
+
+/* 单个字符动画增强 */
+.char {
+  white-space: pre;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  display: inline-block;
+}
+
+.char.active {
+  color: var(--text);
+  font-size: 1.25em;
+  opacity: 1;
+  text-shadow: 0 0 8px var(--rgba-13);
+  animation: charPulse 0.3s var(--animation-timing-bounce);
+}
+
+.char.completed {
+  color: var(--rgba-6);
+  transition: all 0.5s ease;
+}
+
+/* 增加字符激活动画 */
+@keyframes charPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.metadata{
+  display: none;
+}
+
+/* 桌面歌词切换按钮 */
+.desktop-lyrics-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--bg50);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 16px;
+  opacity: 0.7;
+  transition: opacity 0.2s, background-color 0.2s;
+  z-index: 100;
+}
+
+.desktop-lyrics-toggle:hover {
+  opacity: 1;
+  background-color: var(--bg70);
+}
+
+.desktop-lyrics-toggle.active {
+  color: var(--theme-2);
+  opacity: 1;
+}
+
+/* 桌面歌词设置面板 */
+.desktop-lyrics-settings {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: var(--bg70);
+  border-radius: 8px;
+  height: 4px;
+  -webkit-appearance: none;
+  background: var(--border-1);
+  border-radius: 2px;
+  outline: none;
+}
+
+.desktop-lyrics-settings .slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--theme-1);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/.desktop-lyrics-settings .slider-value {
+  width: 30px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* 桌面歌词切换按钮 */
+.desktop-lyrics-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--bg50);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 16px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.desktop-lyrics-toggle:hover {
+  opacity: 1;
+  background-color: var(--bg70);
+  transform: scale(1.05);
+}
+
+.desktop-lyrics-toggle.active {
+  color: var(--theme-2);
+  opacity: 1;
+  background-color: var(--bg80);
+}
+
+/* 桌面歌词设置面板 */
+.desktop-lyrics-settings {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: var(--bg70);
+  border-radius: 12px;
+  padding: 15px;
+  width: 280px;
+  z-index: 99;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-1);
+}
+
+.desktop-lyrics-settings.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.desktop-lyrics-settings .setting-item {
+  margin-bottom: 12px;
+}
+
+.desktop-lyrics-settings .setting-title {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.desktop-lyrics-settings .setting-title i {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.desktop-lyrics-settings .slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.desktop-lyrics-settings .slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: var(--border-1);
+  border-radius: 2px;
+  outline: none;
+}
+
+.desktop-lyrics-settings .slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--theme-1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.desktop-lyrics-settings .slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: var(--theme-2);
+}
+
+.desktop-lyrics-settings .slider-value {
+  width: 40px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* 新增预设按钮 */
+.desktop-lyrics-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.preset-btn {
+  padding: 6px 12px;
+  background: var(--bg50);
+  border: 1px solid var(--border-1);
+  border-radius: 15px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-btn:hover {
+  background: var(--bg80);
+  transform: translateY(-1px);
+}
+
+.preset-btn.active {
+  background: var(--theme-2);
+  color: white;
+  border-color: transparent;
+}
+
+/* 位置保存按钮 */
+.save-position-btn {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: var(--bg50);
+  border: 1px solid var(--border-1);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.save-position-btn:hover {
+  background: var(--bg80);
+}

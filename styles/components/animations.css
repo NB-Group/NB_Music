@@ -1,0 +1,288 @@
+/* 基础动画时长和缓动函数 */
+:root {
+  --animation-duration: 0.3s;
+  --animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-timing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animation-timing-spring: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+/* 通用过渡效果 */
+.transition-all {
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+/* 页面切换动画 */
+.content>div {
+  animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    transform: translateY(10px) scale(0.96);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 播放状态动画 */
+@keyframes playingPulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* 闪光效果动画 */
+@keyframes flashRow {
+  0% {
+    background-color: transparent;
+  }
+
+  30% {
+    background-color: var(--rgba-15);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.flash {
+  animation: flashRow 0.8s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.flash::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--rgba-13),
+      transparent);
+  animation: flashSweep 0.8s ease-out;
+}
+
+@keyframes flashSweep {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+/* 进度条渐变动画 */
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 边框渐变动画 */
+@keyframes borderGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 焦点动画 */
+@keyframes fcl {
+  0% {
+    transform: none;
+  }
+
+  50% {
+    transform: scaleY(0.5);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* 平滑淡入动画 */
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* 对话框动画 */
+@keyframes dialogShow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -54%);
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0);
+  }
+
+  70% {
+    transform: translate(-50%, -49%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 16px 32px var(--rgba-11);
+  }
+}
+
+.dialog:not(.hide) {
+  animation: dialogShow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 通知滑入动画 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 旋转动画 */
+@keyframes clickRotate {
+  0% {
+    transform: rotate(0deg) scale(0.9);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes releaseRotate {
+  0% {
+    transform: rotate(0deg) scale(1.1);
+  }
+
+  100% {
+    transform: rotate(-360deg) scale(1);
+  }
+}
+
+/* 波纹效果 */
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: ripple 0.6s ease-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* 为导航选项卡添加更平滑的过渡 */
+@keyframes slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+nav a {
+  animation: slide-in 0.3s ease-out backwards;
+}
+
+nav a:nth-child(1) { animation-delay: 0.05s; }
+nav a:nth-child(2) { animation-delay: 0.1s; }
+nav a:nth-child(3) { animation-delay: 0.15s; }
+nav a:nth-child(4) { animation-delay: 0.2s; }
+nav a:nth-child(5) { animation-delay: 0.25s; }
+
+/* 旋转动画 */
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
+
+/* 闪烁动画 */
+.blink {
+  animation: blink 1s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 脉冲动画 */
+.pulse {
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 弹跳动画 */
+.bounce {
+  animation: bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounce {
+  0% { transform: scale(0.8); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}

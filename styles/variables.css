@@ -1,0 +1,120 @@
+@font-face {
+  font-family: 'HarmonyOS_Sans';
+  src: url('../../fonts/HarmonyOS_Sans_Medium.woff') format('woff')
+}
+
+:root {
+  /* 动画相关变量 */
+  --animation-duration: 0.35s;
+  --animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-timing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animation-timing-spring: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  
+  /* 主题色自定义变量 */
+  --primary-color: #ad6eca;
+  --secondary-color: #3b91d8;
+  --mica-opacity: 0.5;
+
+  /* 其他外观 */
+  --font-family-custom: ;
+  --font-family-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell;
+  
+  /* 添加交互层次变量 */
+  --hover-opacity: 0.85;
+  --active-scale: 0.97;
+  --focus-ring: 0 0 0 2px rgba(173, 110, 202, 0.4);
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --button-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  --elevation-1: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --elevation-3: 0 8px 16px rgba(0, 0, 0, 0.14);
+  
+  /* 交互状态变量 */
+  --state-hover: brightness(1.1);
+  --state-active: brightness(0.9);
+  
+  /* 过渡时间 */
+  --transition-fast: 150ms;
+  --transition-medium: 250ms;
+  --transition-slow: 350ms;
+}
+
+/* 深色主题变量 */
+:root.dark {
+  --color-1: #fff;
+  --color-2: #ff3b30;
+  --color-3: #444444;
+  --rgba-4: rgba(28, 28, 28, 0.5);
+  --rgba-5: rgba(0, 0, 0, 0.3);
+  --rgba-6: rgba(255, 255, 255, 0.7);
+  --rgba-7: rgba(0, 0, 0, 1);
+  --rgba-8: rgba(0, 0, 0, 0);
+  --rgba-9: rgba(255, 255, 255, 0.3);
+  --rgba-10: rgba(255, 255, 255, 0.15);
+  --rgba-11: rgba(0, 0, 0, 0.2);
+  --rgba-12: rgba(255, 255, 255, 0.8);
+  --rgba-13: rgba(255, 255, 255, 0.2);
+  --color-14: #000;
+  --rgba-15: rgba(30, 215, 96, 0.2);
+  --rgba-16: rgba(255, 255, 255, 0.05);
+  --mica: rgb(18 18 18 / var(--mica-opacity));
+  --color-17: #111;
+  --color-18: #eee;
+  --color-19: #6a11cb;
+  --color-20: #2575fc;
+  --theme-1: var(--primary-color);
+  --theme-2: var(--secondary-color);
+  --text: #ffffff;
+  --bg-1: rgba(28, 28, 28, 0.95);
+  --border-1: rgba(255, 255, 255, 0.1);
+  --bg50: rgba(28, 28, 28, 0.5);
+  --bg70: rgba(28, 28, 28, 0.7);
+  --bg: rgba(28, 28, 28, 1);
+  --sd: rgba(0, 0, 0, 0.3);
+  --s3d: rgba(0, 0, 0, 0.2);
+  --hover: rgba(255, 255, 255, 0.15);
+  --hover-half: rgba(255, 255, 255, 0.07);
+  --error: #ff3b30;
+  --success: #4caf50;
+  --warning: #ff9500;
+}
+
+/* 浅色主题变量 */
+:root.light {
+  --color-1: #222222;
+  --color-2: #dc3545;
+  --color-3: #666666;
+  --color-14: #ffffff;
+  --color-17: #f8f9fa;
+  --color-18: #333333;
+  --rgba-4: rgba(240, 240, 240, 0.95);
+  --rgba-5: rgba(0, 0, 0, 0.1);
+  --rgba-6: rgba(0, 0, 0, 0.7);
+  --rgba-7: rgba(255, 255, 255, 1);
+  --rgba-8: rgba(255, 255, 255, 0);
+  --rgba-9: rgba(0, 0, 0, 0.1);
+  --rgba-10: rgba(0, 0, 0, 0.06);
+  --rgba-11: rgba(0, 0, 0, 0.08);
+  --rgba-12: rgba(0, 0, 0, 0.8);
+  --rgba-13: rgba(0, 0, 0, 0.1);
+  --rgba-15: rgba(25, 135, 84, 0.15);
+  --rgba-16: rgba(0, 0, 0, 0.03);
+  --theme-1: var(--primary-color);
+  --theme-2: var(--secondary-color);
+  --color-19: #f3e5f5;
+  --color-20: #e3f2fd;
+  --text: #222222;
+  --bg-1: rgba(255, 255, 255, 0.95);
+  --border-1: rgba(0, 0, 0, 0.1);
+  --mica: rgb(255 255 255 / var(--mica-opacity));
+  --bg50: rgba(255, 255, 255, 0.5);
+  --bg70: rgba(255, 255, 255, 0.7);
+  --bg: rgba(255, 255, 255, 1);
+  --sd: rgba(0, 0, 0, 0.1);
+  --s3d: rgba(0, 0, 0, 0.08);
+  --hover: rgba(0, 0, 0, 0.06);
+  --hover-half: rgba(0, 0, 0, 0.03);
+  --error: #dc3545;
+  --success: #198754;
+  --warning: #ffc107;
+}

@@ -1,0 +1,182 @@
+/* 侧边栏样式 */
+.sidebar {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-1);
+  padding: 20px 0;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 列表通用样式 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.list a {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.list a:hover {
+  background: linear-gradient(90deg,
+      rgba(var(--theme-1), 0.5),
+      rgba(var(--theme-2), 0.5));
+}
+
+.list a.check {
+  background: linear-gradient(90deg,
+      rgba(var(--theme-1), 0.5),
+      rgba(var(--theme-2), 0.5));
+}
+
+/* 焦点指示器 */
+.focs {
+  position: relative;
+}
+
+.focs span {
+  position: absolute;
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(0deg, var(--theme-1), var(--theme-2));
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.list.focs span.focs {
+  transition: 500ms cubic-bezier(1, 0, 0, 1);
+}
+
+.list.focs span.focs.moving {
+  animation: fcl 200ms cubic-bezier(1, 0.8, 0, 0.2) 160ms;
+}
+
+@keyframes fcl {
+  0% {
+    transform: none;
+  }
+
+  50% {
+    transform: scaleY(0.5);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+#function-list {
+  position: relative;
+}
+
+#function-list>a>i {
+  background-image: linear-gradient(100deg, var(--theme-1), var(--theme-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: saturate(130%) brightness(1.1);
+  margin-right: 4px;
+}
+
+#function-list a {
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+#function-list a.check {
+  background: var(--border-1);
+}
+
+#function-list a:hover:not(.check) {
+  background: var(--rgba-16);
+}
+
+/* 播放列表样式 */
+.playing-list {
+  height: calc(100% - 120px);
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.playing-list .listname {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.playing-list .controls {
+  display: flex;
+  gap: 12px;
+}
+
+.playmode {
+  cursor: pointer;
+  margin-right: 8px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.playmode:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.playmode:active {
+  transform: scale(0.95);
+}
+
+.listname input {
+  position: relative;
+  right: 10px;
+  background-color: var(--bg50);
+  border: none;
+  border-bottom: 2.5px solid;
+  border-bottom-color: #7f7f7f7f;
+  border-radius: 7px;
+  padding: 3px 5px 3px 8px;
+  outline: medium;
+  color: var(--text);
+  transition: 100ms, border 0s;
+  box-shadow: 0 1px 2px var(--s3d);
+}
+
+.listname input:hover {
+  background: var(--cm);
+}
+
+.listname input:focus {
+  background-color: var(--bg);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  background-image: linear-gradient(var(--bg), var(--bg)), linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  border-bottom-color: transparent;
+  box-shadow: 0 1px 10px var(--s3d);
+  opacity: 1;
+}
+
+#playing-list {
+  overflow-y: auto;
+  display: block !important;
+}
+
+.rename {
+  cursor: pointer;
+}

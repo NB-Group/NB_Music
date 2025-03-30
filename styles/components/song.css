@@ -1,0 +1,360 @@
+/* 歌曲条目通用样式 */
+.song {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  backdrop-filter: blur(2px) saturate(2);
+  -webkit-backdrop-filter: blur(2px) saturate(2);
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+[data-title-mode="auto"] .info .name,
+[data-title-mode="auto"] .info .artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song:hover {
+  background-color: var(--border-1);
+}
+
+.song .poster {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.song .info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+  transition: transform var(--transition-medium) var(--animation-timing);
+}
+
+.song:hover .info {
+  transform: translateX(3px);
+}
+
+.song .name {
+  font-size: 14px;
+  font-weight: 500;
+  transition: color var(--transition-medium) ease;
+  position: relative;
+  display: inline-block;
+}
+
+.song:hover .name {
+  color: var(--theme-2);
+}
+
+/* 添加歌曲名称悬停指示 */
+.song .name::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  transition: width var(--transition-medium) var(--animation-timing-bounce);
+}
+
+.song:hover .name::after {
+  width: 100%;
+}
+
+.song .artist {
+  font-size: 12px;
+  color: var(--rgba-6);
+  transition: color var(--transition-medium) ease;
+}
+
+.song:hover .artist {
+  color: var(--rgba-5);
+}
+
+.song .controls {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity var(--transition-medium) ease, 
+              width var(--transition-medium) var(--animation-timing-bounce);
+  width: 0;
+  overflow: hidden;
+}
+
+.song:hover .controls {
+  opacity: 1;
+  width: 37px;
+  animation: controlsAppear 0.3s var(--animation-timing-bounce) forwards;
+}
+
+@keyframes controlsAppear {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 控制按钮互动效果 */
+.song .controls i {
+  transition: transform var(--transition-fast) var(--animation-timing-bounce),
+              color var(--transition-fast) ease;
+}
+
+.song .controls i:hover {
+  transform: scale(1.2);
+}
+
+.song .controls i:active {
+  transform: scale(0.9);
+}
+
+.song .controls .love i:hover {
+  color: #ff3b66;
+}
+
+.song .controls .delete i:hover {
+  color: #ff3b30;
+}
+
+/* 播放列表中的歌曲动画 */
+#playing-list .song {
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center;
+  opacity: 1;
+  overflow: hidden;
+  position: relative;
+  will-change: transform, opacity, max-height;
+  z-index: 1;
+  border-radius: 8px;
+}
+
+#playing-list .song.adding {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  filter: blur(3px);
+}
+
+#playing-list .song.removing {
+  opacity: 0;
+  transform: scale(0.92) rotate(-1deg);
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  filter: blur(2px);
+}
+
+#playing-list .song.playing {
+  background: linear-gradient(90deg,
+      rgba(var(--theme-1), 0.5),
+      rgba(var(--theme-2), 0.5));
+  position: relative;
+}
+
+#playing-list .song.playing::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: linear-gradient(0deg, var(--theme-1), var(--theme-2));
+  animation: playingPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes playingPulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+#playing-list .song.fade-out {
+  opacity: 0.4;
+  transform: scale(0.98);
+}
+
+.song.playing {
+  animation: smoothFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* 添加悬停效果 */
+#playing-list .song {
+  transition: background-color var(--transition-fast) ease,
+              transform var(--transition-medium) var(--animation-timing-bounce);
+}
+
+#playing-list .song:hover {
+  background-color: var(--rgba-16);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--elevation-1);
+}
+
+#playing-list .song:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* 点击波纹效果 */
+#playing-list .song {
+  position: relative;
+  overflow: hidden;
+}
+  overflow: hidden;
+}
+
+.flash::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--rgba-13),
+      transparent);
+  animation: flashSweep 0.8s ease-out;
+}
+
+@keyframes flashRow {
+  0% {
+    background-color: transparent;
+  }
+
+  30% {
+    background-color: var(--rgba-15);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flashSweep {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+/* 拖拽后重新排序动画 */
+@keyframes reorderComplete {
+  0% {
+    background-color: var(--rgba-15);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.reorder-complete {
+  animation: reorderComplete 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* 歌曲列表项样式 */
+.music-list #songList .song {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  align-items: center;
+}
+
+.music-list #songList .song:hover {
+  background: var(--rgba-16);
+}
+
+.music-list #songList .song-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.music-list #songList .song-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px var(--rgba-11);
+}
+
+.music-list #songList .song-title {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.music-list #songList .controls {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.music-list #songList .song:hover .controls {
+  opacity: 1;
+}
+
+.music-list #songList .controls i {
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--rgba-6);
+}
+
+.music-list #songList .controls i:hover {
+  color: var(--text);
+  transform: scale(1.1);
+}
+
+/* 爱心歌单歌曲样式 */
+#lovelist>.song {
+  border: 1px solid var(--border-1);
+}

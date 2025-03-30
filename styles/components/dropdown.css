@@ -1,0 +1,151 @@
+.custom-select {
+    position: relative;
+    display: inline-block;
+    min-width: 150px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.select-selected {
+    background-color: var(--bg50);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px var(--s3d);
+    border-bottom: 2px solid transparent;
+    transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.select-selected:hover {
+    background-color: var(--hover);
+}
+
+.select-selected:after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text);
+    border-bottom: 2px solid var(--text);
+    margin-left: 12px;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.select-selected.open {
+    background-image: linear-gradient(var(--bg), var(--bg)), linear-gradient(0deg, var(--theme-1), var(--theme-2));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border-bottom: 2px solid transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 4px 12px var(--s3d);
+}
+
+.select-selected.open:after {
+    transform: rotate(-135deg);
+    margin-bottom: 5px;
+}
+
+.select-items {
+    position: absolute;
+    background-color: var(--bg);
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-shadow: 0 8px 16px var(--sd);
+    transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.select-items.open {
+    max-height: 300px;
+    opacity: 1;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.select-item {
+    color: var(--text);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    margin: 6px;
+}
+
+.select-item:before {
+    content: '';
+    width: 0;
+    height: 20px;
+    background: linear-gradient(0deg, var(--theme-1), var(--theme-2));
+    margin-right: 10px;
+    border-radius: 2px;
+    transition: width 0.2s var(--animation-timing-spring);
+}
+
+.select-item:hover {
+    background-color: var(--hover);
+}
+
+.select-item:hover:before {
+    /* width: 3px; */
+}
+
+.select-item.selected {}
+
+.select-item.selected:before {
+    width: 5px;
+}
+
+/* 滚动条样式 */
+.select-items::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.select-items::-webkit-scrollbar-thumb {
+    background: var(--rgba-9);
+    border-radius: 3px;
+    border: none;
+}
+
+.select-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 已禁用的下拉框 */
+.custom-select.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* 动画效果 */
+@keyframes selectOpen {
+    0% {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.select-items.open {
+    animation: selectOpen 0.3s var(--animation-timing-bounce) forwards;
+}

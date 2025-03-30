@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NB Music 桌面歌词</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="styles/desktop-lyrics.css">
+</head>
+<body>
+  <div id="lyrics-container">
+    <div class="drag-handle"></div>
+    
+    <div class="lyrics-content">
+      <div class="current-line">NB Music 桌面歌词</div>
+      <div class="next-line">正在等待播放...</div>
+    </div>
+    
+    
+    <div class="progress-info">
+      <div class="progress-bar">
+        <div class="progress-bar-inner"></div>
+      </div>
+      <div class="time-display">
+        <span id="current-time">00:00</span>
+        <span id="total-time">00:00</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="control-panel">
+    <button class="control-btn" id="pinBtn" title="锁定/解锁窗口">
+      <i class="bi bi-pin"></i>
+    </button>
+    <button class="control-btn" id="fontSizeBtn" title="调整字体大小">
+      <i class="bi bi-fonts"></i>
+    </button>
+    <button class="control-btn" id="bgColorBtn" title="背景颜色">
+      <i class="bi bi-palette"></i>
+    </button>
+    <button class="control-btn" id="playControlBtn" title="播放/暂停">
+      <i class="bi bi-play-fill"></i>
+    </button>
+    <button class="control-btn" id="settingsBtn" title="更多设置">
+      <i class="bi bi-gear"></i>
+    </button>
+    <button class="control-btn" id="debugBtn" title="调试模式">
+      <i class="bi bi-bug"></i>
+    </button>
+    <button class="control-btn" id="closeBtn" title="关闭桌面歌词">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+  
+  <div class="font-size-panel">
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>当前行大小</span>
+        <span id="currentSizeValue">28px</span>
+      </div>
+      <input type="range" id="currentLineSize" class="slider-input" min="18" max="48" value="28" step="1">
+    </div>
+    
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>下一行大小</span>
+        <span id="nextSizeValue">24px</span>
+      </div>
+      <input type="range" id="nextLineSize" class="slider-input" min="14" max="36" value="24" step="1">
+    </div>
+    
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>背景不透明度</span>
+        <span id="bgOpacityValue">30%</span>
+      </div>
+      <input type="range" id="bgOpacity" class="slider-input" min="0" max="100" value="30" step="5">
+    </div>
+    
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>模糊效果</span>
+        <span id="blurValue">10px</span>
+      </div>
+      <input type="range" id="blurAmount" class="slider-input" min="0" max="20" value="10" step="1">
+    </div>
+  </div>
+  
+  <div class="resize-handle"></div>
+  <div class="tooltip"></div>
+  <div class="heartbeat"></div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    // 获取元素
+    const pinBtn = document.getElementById('pinBtn');
+    const fontSizeBtn = document.getElementById('fontSizeBtn');
+    const bgColorBtn = document.getElementById('bgColorBtn');
+    const playControlBtn = document.getElementById('playControlBtn');
+    const debugBtn = document.getElementById('debugBtn');
+    const fontSizePanel = document.querySelector('.font-size-panel');
+    const currentLineSize = document.getElementById('currentLineSize');
+    const nextLineSize = document.getElementById('nextLineSize');
+    const bgOpacity = document.getElementById('bgOpacity');
+    const blurAmount = document.getElementById('blurAmount');
+    const currentSizeValue = document.getElementById('currentSizeValue');
+    const nextSizeValue = document.getElementById('nextSizeValue');
+    const bgOpacityValue = document.getElementById('bgOpacityValue');
+    const blurValue = document.getElementById('blurValue');
+    const lyricsContent = document.querySelector('.lyrics-content');
+    const progressBarInner = document.querySelector('.progress-bar-inner');
+    const songTitle = document.querySelector('.song-title');
+    const currentTime = document.getElementById('current-time');
+    const totalTime = document.getElementById('total-time');
+    
+    // 状态变量
+    let isPinned = true;
+    let isPlaying = false;
+    let isResizing = false;
+    let startX, startY, startWidth, startHeight;
+    let lastUpdateTime = Date.now();
+    let updateCount = 0;
+    let audioCurrentTime = 0;
+    let audioDuration = 0;
+    
+    // 格式化时间为 mm:ss
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // 自检定时器 - 检查窗口是否还活着
+    setInterval(() => {
+      // 如果超过10秒没有更新，尝试请求同步
+      const now = Date.now();
+      if (now - lastUpdateTime > 10000) {
+        ipcRenderer.send('force-sync-desktop-lyrics');
+        
+        // 闪烁歌词内容，提示用户窗口仍在运行
+        lyricsContent.classList.add('updating');
+        setTimeout(() => lyricsContent.classList.remove('updating'), 300);
+        
+        lastUpdateTime = now;
+      }
+      
+      // 更新心跳动画
+      document.querySelector('.heartbeat').style.opacity = 
+        (Math.sin(Date.now() / 500) + 1) / 4 + 0.25;
+        
+      // 更新时间显示
+      if (isPlaying) {
+        audioCurrentTime += 0.1;
+        if (audioCurrentTime > audioDuration) audioCurrentTime = audioDuration;
+        currentTime.textContent = formatTime(audioCurrentTime);
+        
+        // 更新进度条
+        const progress = (audioCurrentTime / audioDuration) * 100;
+        if (!isNaN(progress)) {
+          progressBarInner.style.width = `${progress}%`;
+        }
+      }
+    }, 100);
+    
+    // 监听来自主窗口的歌词更新
+    ipcRenderer.on('update-desktop-lyrics', (event, data) => {
+      const { currentLine, nextLine, songInfo, currentTime, duration, isPlaying: playState } = data;
+      
+      // 记录更新时间
+      lastUpdateTime = Date.now();
+      updateCount++;
+      
+      // 添加过渡动画
+      lyricsContent.classList.add('updating');
+      setTimeout(() => lyricsContent.classList.remove('updating'), 300);
+      
+      // 更新歌词内容
+      document.querySelector('.current-line').textContent = currentLine || 'NB Music 桌面歌词';
+      document.querySelector('.next-line').textContent = nextLine || '正在等待播放...';
+      
+      // 更新播放状态
+      isPlaying = playState;
+      playControlBtn.innerHTML = isPlaying ? 
+        '<i class="bi bi-pause-fill"></i>' : 
+        '<i class="bi bi-play-fill"></i>';
+      playControlBtn.title = isPlaying ? '暂停' : '播放';
+      
+      // 更新时间和进度
+      if (currentTime !== undefined && duration) {
+        audioCurrentTime = currentTime;
+        audioDuration = duration;
+        currentTime.textContent = formatTime(currentTime);
+        totalTime.textContent = formatTime(duration);
+        
+        const progress = (currentTime / duration) * 100;
+        progressBarInner.style.width = `${progress}%`;
+      }
+      
+      // 更新歌曲信息
+      if (songInfo) {
+        const title = `${songInfo.title} - ${songInfo.artist}`;
+        songTitle.textContent = title;
+        
+        // 检查文本长度，如果太长则添加滚动效果
+        songTitle.classList.remove('scrolling');
+        setTimeout(() => {
+          if (songTitle.scrollWidth > songTitle.clientWidth + 20) {
+            songTitle.classList.add('scrolling');
+          }
+        }, 100);
+      }
+    });
+    
+    // 监听样式更新
+    ipcRenderer.on('update-lyrics-style', (event, style) => {
+      const root = document.documentElement;
+      
+      if (style.fontFamily) {
+        root.style.setProperty('--font-family', style.fontFamily);
+      }
+      
+      if (style.currentLineSize) {
+        root.style.setProperty('--current-line-size', `${style.currentLineSize}px`);
+        currentLineSize.value = style.currentLineSize;
+        currentSizeValue.textContent = `${style.currentLineSize}px`;
+      }
+      
+      if (style.nextLineSize) {
+        root.style.setProperty('--next-line-size', `${style.nextLineSize}px`);
+        nextLineSize.value = style.nextLineSize;
+        nextSizeValue.textContent = `${style.nextLineSize}px`;
+      }
+      
+      if (style.theme1 && style.theme2) {
+        root.style.setProperty('--theme-1', style.theme1);
+        root.style.setProperty('--theme-2', style.theme2);
+      }
+      
+      if (style.backgroundColor) {
+        document.body.style.backgroundColor = style.backgroundColor;
+        // 更新透明度滑块值
+        const opacity = parseInt(style.backgroundColor.match(/[^,]+(?=\))/)[0] * 100);
+        bgOpacity.value = opacity;
+        bgOpacityValue.textContent = `${opacity}%`;
+      }
+      
+      if (style.blurAmount) {
+        root.style.setProperty('--blur-amount', `${style.blurAmount}px`);
+        blurAmount.value = style.blurAmount;
+        blurValue.textContent = `${style.blurAmount}px`;
+      }
+    });
+    
+    // 按钮事件
+    pinBtn.addEventListener('click', () => {
+      isPinned = !isPinned;
+      pinBtn.classList.toggle('active', isPinned);
+      pinBtn.title = isPinned ? '解除锁定' : '锁定窗口';
+      pinBtn.innerHTML = isPinned ? '<i class="bi bi-pin-fill"></i>' : '<i class="bi bi-pin"></i>';
+      ipcRenderer.send('desktop-lyrics-toggle-pin');
+    });
+    
+    fontSizeBtn.addEventListener('click', () => {
+      fontSizePanel.classList.toggle('visible');
+    });
+    
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      ipcRenderer.send('desktop-lyrics-close');
+    });
+    
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      ipcRenderer.send('desktop-lyrics-settings');
+    });
+    
+    playControlBtn.addEventListener('click', () => {
+      ipcRenderer.send('desktop-lyrics-toggle-play');
+    });
+    
+    bgColorBtn.addEventListener('click', () => {
+      // 打开颜色设置面板
+      ipcRenderer.send('desktop-lyrics-bg-color');
+    });
+    
+    // 滑块事件
+    currentLineSize.addEventListener('input', () => {
+      const value = currentLineSize.value;
+      currentSizeValue.textContent = `${value}px`;
+      document.documentElement.style.setProperty('--current-line-size', `${value}px`);
+      ipcRenderer.send('desktop-lyrics-update-style', { currentLineSize: parseInt(value) });
+    });
+    
+    nextLineSize.addEventListener('input', () => {
+      const value = nextLineSize.value;
+      nextSizeValue.textContent = `${value}px`;
+      document.documentElement.style.setProperty('--next-line-size', `${value}px`);
+      ipcRenderer.send('desktop-lyrics-update-style', { nextLineSize: parseInt(value) });
+    });
+    
+    bgOpacity.addEventListener('input', () => {
+      const value = bgOpacity.value;
+      bgOpacityValue.textContent = `${value}%`;
+      const opacity = value / 100;
+      document.body.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+      ipcRenderer.send('desktop-lyrics-update-style', { backgroundColor: `rgba(0, 0, 0, ${opacity})` });
+    });
+    
+    blurAmount.addEventListener('input', () => {
+      const value = blurAmount.value;
+      blurValue.textContent = `${value}px`;
+      document.documentElement.style.setProperty('--blur-amount', `${value}px`);
+      ipcRenderer.send('desktop-lyrics-update-style', { blurAmount: parseInt(value) });
+    });
+    
+    // 点击外部关闭面板
+    document.addEventListener('click', (e) => {
+      if (!fontSizePanel.contains(e.target) && e.target !== fontSizeBtn) {
+        fontSizePanel.classList.remove('visible');
+      }
+    });
+    
+    // 窗口拖拽大小
+    const resizeHandle = document.querySelector('.resize-handle');
+    
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = window.innerWidth;
+      startHeight = window.innerHeight;
+      
+      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mouseup', stopResize);
+      
+      e.preventDefault();
+    });
+    
+    function handleResize(e) {
+      if (!isResizing) return;
+      
+      const width = startWidth + (e.clientX - startX);
+      const height = startHeight + (e.clientY - startY);
+      
+      ipcRenderer.send('desktop-lyrics-resize', { width, height });
+    }
+    
+    function stopResize() {
+      isResizing = false;
+      document.removeEventListener('mousemove', handleResize);
+      document.removeEventListener('mouseup', stopResize);
+    }
+    
+    // 工具提示
+    function showTooltip(element, text) {
+      const tooltip = document.querySelector('.tooltip');
+      const rect = element.getBoundingClientRect();
+      
+      tooltip.textContent = text;
+      tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+      tooltip.style.top = `${rect.bottom + 8}px`;
+      tooltip.classList.add('visible');
+      
+      setTimeout(() => {
+        tooltip.classList.remove('visible');
+      }, 2000);
+    }
+    
+    // 添加工具提示事件
+    document.querySelectorAll('.control-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        showTooltip(btn, btn.title);
+      });
+    });
+    
+    // 添加调试模式按钮
+    debugBtn.addEventListener('click', () => {
+      document.body.classList.toggle('debug-mode');
+      debugBtn.classList.toggle('active');
+      
+      const isDebugMode = document.body.classList.contains('debug-mode');
+      debugBtn.title = isDebugMode ? '关闭调试模式' : '开启调试模式';
+      
+      if (isDebugMode) {
+        alert(`桌面歌词窗口状态:\n更新次数: ${updateCount}\n最后更新: ${new Date(lastUpdateTime).toLocaleTimeString()}`);
+      }
+    });
+    
+    // 进度条点击事件
+    document.querySelector('.progress-bar').addEventListener('click', (e) => {
+      const progressBar = e.currentTarget;
+      const rect = progressBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      
+      if (audioDuration) {
+        audioCurrentTime = percent * audioDuration;
+        ipcRenderer.send('desktop-lyrics-seek', audioCurrentTime);
+      }
+    });
+    
+    // 通知主进程窗口已准备好
+    window.addEventListener('DOMContentLoaded', () => {
+      ipcRenderer.send('desktop-lyrics-ready');
+      
+      // 请求立即同步一次歌词
+      setTimeout(() => {
+        ipcRenderer.send('force-sync-desktop-lyrics');
+      }, 500);
+    });
+  </script>
+</body>
+</html>

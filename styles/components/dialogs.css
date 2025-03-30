@@ -1,0 +1,633 @@
+/* 对话框背景 */
+.dialog-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.4s var(--animation-timing);
+}
+
+.dialog-bg:not(.hide) {
+  opacity: 1;
+}
+
+/* 对话框基础样式增强 */
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  opacity: 0;
+  background: var(--bg70);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 400px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  z-index: 1001;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-1);
+  background: var(--mica);
+  transition: all 0.4s var(--animation-timing-bounce);
+  will-change: transform, opacity;
+}
+
+.dialog-bg:not(.hide) .dialog {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* 对话框内容需要在遮罩层之上 */
+.dialog>* {
+  position: relative;
+  z-index: 1002;
+}
+
+.dialog.hide {
+  display: none;
+}
+
+/* 对话框头部增强 */
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.dialog-header h2 {
+  margin: 0;
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.5rem;
+}
+
+/* 关闭按钮增强 */
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--rgba-6);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+/* 对话框底部按钮区域 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* 对话框按钮样式 */
+.dialog-btn {
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 次要按钮样式 */
+.dialog-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--text);
+}
+
+.dialog-btn-secondary:hover {
+  background: var(--rgba-16);
+}
+
+/* 主要按钮样式 */
+.dialog-btn-primary {
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  border: none;
+  color: white;
+}
+
+.dialog-btn-primary:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.dialog-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* 禁用状态 */
+.dialog-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 禁用按钮样式 */
+.dialog-btn-primary:disabled {
+  background: var(--bg50);
+  color: var(--text-2);
+  cursor: not-allowed;
+  filter: grayscale(1);
+  transform: none;
+}
+
+/* 选项样式 */
+select option {
+  padding: 12px;
+  background: var(--color-17);
+  color: var(--text);
+  border: none;
+}
+
+/* 选项悬停状态 */
+select option:hover {
+  background: var(--rgba-16);
+}
+
+/* 选中的选项 */
+select option:checked {
+  background: var(--theme-1);
+  color: white;
+}
+
+/* 禁用状态 */
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 更新容器 - 重新设计 */
+.update-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background-color: rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+}
+
+.update-container.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.update-content {
+  background: var(--bg70);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 400px;
+  box-shadow: 0 8px 32px var(--sd);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-1);
+  background: var(--mica);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  text-align: center;
+}
+
+.update-container:not(.hide) .update-content {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 更新状态文本 */
+.update-status {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.update-status.error {
+  color: var(--color-danger);
+}
+
+.update-status.success {
+  color: var(--color-success);
+}
+
+/* 进度条容器 */
+.progress-wrapper {
+  margin: 24px 0;
+}
+
+.progress-text {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* 进度条样式 */
+.update-container .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg50);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.update-container .progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s ease-out;
+}
+
+/* 更新操作按钮区域 */
+.update-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* 与对话框按钮样式一致 */
+.update-actions button {
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+#update-now {
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  color: white;
+}
+
+#update-now:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+#update-later {
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--text);
+}
+
+#update-later:hover {
+  background: var(--rgba-16);
+}
+
+/* 歌词搜索对话框 */
+#lyricSearchDialog .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 导入对话框 */
+#importDialog .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 登录对话框 */
+#loginDialog .dialog-content {
+  text-align: center;
+}
+
+/* 首次使用对话框 */
+#firstUseDialog .dialog {
+  max-width: 680px;
+  min-height: 480px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#firstUseDialog .dialog-header {
+  background: linear-gradient(135deg, var(--theme-1), var(--theme-2));
+  padding: 32px 40px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+#firstUseDialog .dialog-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../../../img/pattern.svg');
+  opacity: 0.1;
+  z-index: 0;
+}
+
+#firstUseDialog .dialog-header-content {
+  position: relative;
+  z-index: 1;
+}
+
+#firstUseDialog .welcome-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+#firstUseDialog h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: white;
+}
+
+#firstUseDialog .welcome-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+#firstUseDialog .dialog-content {
+  padding: 32px 40px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#firstUseDialog .welcome-features {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+#firstUseDialog .feature-item {
+  flex: 1;
+  text-align: center;
+  padding: 16px;
+  background: var(--bg50);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+#firstUseDialog .feature-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px var(--sd);
+}
+
+#firstUseDialog .feature-icon {
+  font-size: 24px;
+  color: var(--theme-1);
+  margin-bottom: 8px;
+}
+
+#firstUseDialog .feature-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+#firstUseDialog .feature-desc {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+#firstUseDialog .terms-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--border-1);
+  border-radius: 12px;
+  margin: 20px 0;
+  background: var(--bg30);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+#firstUseDialog .terms-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+#firstUseDialog .terms-container p {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#firstUseDialog .agreement-checkbox {
+  margin-top: 12px;
+  transform: scale(1.05);
+  transform-origin: left;
+}
+
+#firstUseDialog .dialog-footer {
+  padding: 20px 40px;
+  border-top: 1px solid var(--border-1);
+  justify-content: space-between;
+  margin-top: 0;
+}
+
+#firstUseDialog #agreeTerms {
+  padding: 10px 32px;
+  min-width: 160px;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(var(--theme-1-rgb), 0.3);
+  transition: all 0.3s var(--bounce);
+}
+
+#firstUseDialog #agreeTerms:disabled {
+  box-shadow: none;
+}
+
+#firstUseDialog #agreeTerms:not(:disabled):hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+#firstUseDialog .highlight-link {
+  position: relative;
+}
+
+#firstUseDialog .highlight-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--theme-1);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+#firstUseDialog .highlight-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+#firstUseDialog .welcome-version {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: auto;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+#firstUseDialog .welcome-version i {
+  margin-right: 6px;
+  color: var(--theme-1);
+}
+
+/* 高亮链接样式 */
+.highlight-link {
+  color: var(--theme-1);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.highlight-link:hover {
+  text-decoration: underline;
+  color: var(--theme-2);
+}
+
+/* 同意复选框样式 - 升级版 */
+.agreement-checkbox {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.agreement-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.agreement-checkbox label {
+  position: relative;
+  cursor: pointer;
+  padding-left: 36px;
+  margin-bottom: 0;
+  user-select: none;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--text);
+}
+
+/* 自定义复选框 */
+.agreement-checkbox label:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px solid var(--border-1);
+  background: var(--bg50);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 勾选标记 */
+.agreement-checkbox label:after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 5px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 悬停效果 */
+.agreement-checkbox label:hover:before {
+  border-color: var(--theme-1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 选中状态 */
+.agreement-checkbox input[type="checkbox"]:checked + label:before {
+  background: linear-gradient(90deg, var(--theme-1), var(--theme-2));
+  border-color: transparent;
+}
+
+.agreement-checkbox input[type="checkbox"]:checked + label:after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+/* 聚焦状态 */
+.agreement-checkbox input[type="checkbox"]:focus + label:before {
+  box-shadow: 0 0 0 3px rgba(var(--theme-1-rgb), 0.3);
+}
+
+/* 禁用状态 */
+.agreement-checkbox input[type="checkbox"]:disabled + label {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.agreement-checkbox input[type="checkbox"]:disabled + label:before {
+  border-color: var(--border-1);
+  background: var(--bg30);
+  box-shadow: none;
+}
+
+/* 链接格式提示 */
+.link-format-tip {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+.format-example {
+  font-style: italic;
+}
+
+/* 导入对话框 */
+#importDialog .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

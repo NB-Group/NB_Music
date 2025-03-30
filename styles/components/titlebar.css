@@ -1,0 +1,160 @@
+/* 标题栏样式 */
+.titbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 16px;
+  box-shadow: 0 0 0 3px;
+  /* 这个box-shadow是奇怪bug的修复代码，如果删掉，--mica颜色就不会铺满背景，非常奇怪 */
+  background-color: var(--bg70);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-1);
+  -webkit-app-region: drag;
+}
+
+.titbar .icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.titbar p {
+  flex-grow: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 窗口控制按钮 */
+.wbtg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+  -webkit-app-region: no-drag;
+}
+
+.wbtg:hover {
+  background: var(--border-1);
+}
+
+.wbtg.red:hover {
+  background: var(--color-2);
+}
+
+.wbtg:active {
+  transform: scale(0.95);
+}
+
+/* 搜索栏样式 */
+.titbar>.search {
+  grid-column: 2;
+  padding: 16px;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  width: 60%;
+}
+
+.search-music {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-14);
+  font-size: 14px;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  backdrop-filter: blur(20px);
+  -webkit-app-region: no-drag;
+}
+
+.search-music:focus {
+  outline: none;
+  background: var(--rgba-10);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 24px var(--rgba-11);
+}
+
+/* 搜索建议样式 */
+.suggestions {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  width: 60%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--mica);
+  border-radius: 8px;
+  margin-top: 4px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-1);
+  overflow: hidden;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 8px 32px var(--bg-1);
+}
+
+.suggestions.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.suggestion-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 6px;
+  border-radius: 8px;
+
+  .suggest_high_light {
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, var(--theme-1), var(--theme-2));
+    background-clip: text;
+    font-style: normal;
+    -webkit-background-clip: text;
+  }
+}
+suggestion
+.suggestion-item:hover,
+.selected {
+  background: var(--rgba-16);
+}
+
+/* 登录按钮样式 */
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: fixed;
+  right: 127px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-app-region: no-drag;
+}
+
+.login-btn:hover {
+  background: var(--rgba-16);
+}
+
+/* 用户头像样式 */
+.login-btn .user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 当头像加载失败时显示的默认样式 */
+.login-btn .user-avatar:not([src]),
+.login-btn .user-avatar[src=""] {
+  display: none;
+}

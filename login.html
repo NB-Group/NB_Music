@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilibili 登录</title>
+    <style>
+        @font-face {
+            font-family: 'HarmonyOS_Sans';
+            src: url('/HarmonyOS_Sans.woff') format('woff')
+        }
+
+        * {
+            font-family: HarmonyOS_Sans, Arial, serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('/background.png'); /* 设置背景图片 */
+            background-size: cover;
+            background-position: center;
+            backdrop-filter: blur(20px);
+        }
+
+        .rectangle {
+            width: 500px;
+            height: 220px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(28, 28, 28, 0.7);
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgb(18 18 18 / 0.5);
+        }
+
+        #userInfo {
+            margin-top: 40px;
+            padding: 0.3733rem 0.32rem;
+            border-radius: 0.1067rem;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            -moz-box-pack: justify;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+        }
+
+        #userInfo .user_right {
+            display: flex;
+            margin-left: 120px;
+        }
+
+        #userInfo .user_info {
+            margin-left: 25px;
+        }
+
+        #userInfo .user_avatar {
+            width: 59px;
+            height: 59px;
+            margin-top: 3px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        #userInfo #user_name {
+            font-size: 18px;
+            line-height: 0.48rem;
+            color: #fff;
+        }
+
+        #userInfo #user_mid {
+            font-size: 14px;
+            line-height: 0.48rem;
+            color: #9499a0;
+        }
+
+        button {
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 5%;
+            width: 90%;
+            height: 40px;
+            margin-top: 24px;
+            transition: all 0.2s ease;
+            background: linear-gradient(90deg, #ad6eca, #3b91d8);
+            border: none;
+            color: white;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+
+        a {
+            font-weight: bold; /* 链接字体加粗 */
+            transition: color 0.3s ease; /* 文字颜色过渡效果 */
+            text-decoration: none; /* 去除链接下划线 */
+            color: #3e88f6; /* 链接文字颜色 */
+        }
+
+        a:hover {
+            color: #39a9ff; /* 链接文字颜色 */
+        }
+
+        #notLoginMessage {
+            margin-left: 30%;
+            margin-top: 20%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="rectangle">
+    <p id="notLoginMessage">你还没登录B站呢，快去<a href="https://passport.bilibili.com/login">登录</a>！</p>
+    <div id="userInfo">
+        <div class="user_right">
+            <div class="user_avatar">
+                <img id="avatar" style="width: 100%;" src="" alt="">
+            </div>
+            <div class="user_info">
+                <p id="user_name"></p>
+                <p id="user_mid"></p>
+            </div>
+        </div>
+    </div>
+    <button id="loginButton">登录</button>
+</div>
+<script>
+    const avatar = document.getElementById('avatar');
+    const user_name = document.getElementById('user_name');
+    const user_mid = document.getElementById('user_mid');
+    const notLoginMessage = document.getElementById('notLoginMessage');
+    const userInfo = document.getElementById('userInfo');
+    const loginButton = document.getElementById('loginButton');
+
+    fetch('/getUserInfo').then(res => res.json()).then(data => {
+        if (data.data.isLogin) {
+            avatar.src = data.data.avatar;
+            avatar.alt = data.data.name;
+            user_name.textContent = data.data.name;
+            user_mid.textContent = `UID: ${data.data.mid}`;
+        } else {
+            notLoginMessage.style.display = 'block';
+            userInfo.style.display = 'none';
+            loginButton.style.display = 'block';
+        }
+    });
+
+    loginButton.addEventListener('click', () => {
+        loginButton.disabled = true;
+
+        fetch('/callback').then(res => {
+            loginButton.textContent = '登录成功';
+
+            window.close();
+            window.location.href = 'about:blank';
+        }).finally(() => {
+            loginButton.disabled = false;
+        });
+    });
+</script>
+</body>
+</html>

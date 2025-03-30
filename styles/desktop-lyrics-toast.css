@@ -1,0 +1,295 @@
+/* 桌面歌词Toast通知样式 */
+
+.toast-container {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: 90%;
+}
+
+.toast {
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: blur(var(--blur-amount, 10px));
+  -webkit-backdrop-filter: blur(var(--blur-amount, 10px));
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: translateY(0);
+  opacity: 1;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform, opacity;
+  position: relative;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  padding: 1.5px;
+  background: linear-gradient(to right, var(--theme-1, #6a11cb), var(--theme-2, #2575fc));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.toast.fade-in {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.toast.fade-out {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.toast i {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.toast.success i {
+  color: #32d296;
+  filter: drop-shadow(0 0 5px rgba(50, 210, 150, 0.4));
+}
+
+.toast.warning i {
+  color: #faa05a;
+  filter: drop-shadow(0 0 5px rgba(250, 160, 90, 0.4));
+}
+
+.toast.error i {
+  color: #f0506e;
+  filter: drop-shadow(0 0 5px rgba(240, 80, 110, 0.4));
+}
+
+.toast.info i {
+  color: var(--theme-2, #2575fc);
+  filter: drop-shadow(0 0 5px rgba(var(--theme-2-rgb, 37, 117, 252), 0.4));
+}
+
+/* 保存位置提示样式 */
+.save-position-toast {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 1;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 200;
+  backdrop-filter: blur(var(--blur-amount, 10px));
+  -webkit-backdrop-filter: blur(var(--blur-amount, 10px));
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  will-change: opacity, transform;
+}
+
+.save-position-toast.fade-out {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.save-position-toast i {
+  color: #32d296;
+  filter: drop-shadow(0 0 5px rgba(50, 210, 150, 0.4));
+}
+
+/* 为桌面歌词主题预设添加样式 */
+.desktop-lyrics-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.preset-btn {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-grow: 1;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.preset-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--theme-1, #6a11cb), var(--theme-2, #2575fc));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.preset-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.preset-btn.active {
+  background: rgba(var(--theme-2-rgb, 37, 117, 252), 0.2);
+  border-color: rgba(var(--theme-2-rgb, 37, 117, 252), 0.4);
+  box-shadow: 0 0 12px rgba(var(--theme-2-rgb, 37, 117, 252), 0.3);
+}
+
+.preset-btn.active::before {
+  opacity: 1;
+}
+
+/* 保存位置按钮 */
+.save-position-btn {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.save-position-btn:hover {
+  background: rgba(var(--theme-2-rgb, 37, 117, 252), 0.2);
+  border-color: rgba(var(--theme-2-rgb, 37, 117, 252), 0.3);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 5px 15px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(var(--theme-2-rgb, 37, 117, 252), 0.2);
+}
+
+.save-position-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.save-position-btn i {
+  font-size: 16px;
+  color: var(--theme-2, #2575fc);
+}
+
+/* 歌词设置面板中的Toast样式 */
+.lyrics-toast-container {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.lyrics-toast {
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  backdrop-filter: blur(var(--blur-amount, 10px));
+  -webkit-backdrop-filter: blur(var(--blur-amount, 10px));
+  box-shadow: 
+    0 6px 15px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.lyrics-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lyrics-toast i {
+  font-size: 16px;
+}
+
+.lyrics-toast.success i {
+  color: #32d296;
+  filter: drop-shadow(0 0 5px rgba(50, 210, 150, 0.4));
+}
+
+.lyrics-toast.warning i {
+  color: #faa05a;
+  filter: drop-shadow(0 0 5px rgba(250, 160, 90, 0.4));
+}
+
+.lyrics-toast.error i {
+  color: #f0506e;
+  filter: drop-shadow(0 0 5px rgba(240, 80, 110, 0.4));
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+  .toast {
+    padding: 8px 16px;
+    font-size: 13px;
+    max-width: 90vw;
+  }
+  
+  .preset-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .save-position-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
