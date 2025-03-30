@@ -169,7 +169,7 @@
       <h2>网页登录</h2>
       <div class="dialog-content">
         <div class="login-tips">NB Music将打开浏览器进行进一步授权</div>
-        <div class="login-tips">如果出现根证书导入窗口，请点击“是”以导入根证书</div>
+        <div class="login-tips">如果出现根证书导入窗口，请点击"是"以导入根证书</div>
         <div class="login-tips" style="margin-bottom: 7px;">NB Music不会存储您的账号信息，所有认证均通过官方接口完成</div>
         <a href="#" id="switchQrcode" class="switch-method">使用扫码登录</a>
       </div>
@@ -783,6 +783,38 @@
                   <button id="clearCache" class="cache-clear-btn">清除缓存</button>
                 </div>
               </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <i class="bi bi-play-btn"></i>
+                  <div class="words">
+                    <div class="setting-name">视频解析方式</div>
+                    <div class="setting-descrition">选择使用官方或第三方接口解析视频</div>
+                  </div>
+                </div>
+                <div class="setting-value">
+                  <nav data-nav-id="nav-video-parse">
+                    <a class="active" data-key="videoParseMethod" data-value="official">官方解析</a>
+                    <a data-key="videoParseMethod" data-value="thirdParty">第三方解析</a>
+                  </nav>
+                </div>
+              </div>
+              <div class="setting-item" id="interfaceSelector" style="display: none;">
+                <div class="setting-info">
+                  <i class="bi bi-list"></i>
+                  <div class="words">
+                    <div class="setting-name">第三方接口</div>
+                    <div class="setting-descrition">选择使用的第三方解析接口</div>
+                  </div>
+                </div>
+                <div class="setting-value">
+                  <div class="dropdown">
+                    <button class="dropdown-toggle">选择接口</button>
+                    <div class="dropdown-menu">
+                      <!-- 接口列表通过JavaScript动态生成 -->
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="setting-category">
@@ -875,6 +907,51 @@
     <div class="account-options-container">
       <div class="option" id="account-home">B站主页</div>
       <div class="option" id="account-logout">退出登录</div>
+    </div>
+  </div>
+
+  <!-- 视频解析免责声明对话框 -->
+  <div class="dialog-bg hide" id="parseDisclaimerDialog">
+    <div class="dialog disclaimer-dialog">
+        <div class="dialog-header">
+            <h2>第三方解析免责声明</h2>
+            <button class="close-btn" id="closeDisclaimerDialog"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="dialog-content disclaimer-content">
+            <h3>在使用第三方视频解析功能前，请您务必仔细阅读并确认以下免责声明：</h3>
+            <div class="disclaimer-text">
+                <p><strong>1. 功能与稳定性：</strong>第三方解析服务由外部提供，不受本软件控制，可能存在稳定性问题、中断或随时失效的风险。</p>
+                
+                <p><strong>2. 法律责任声明：</strong>本软件仅提供第三方解析接口的整合服务，不参与实际解析过程。用户使用第三方解析功能产生的一切法律责任由用户自行承担。</p>
+                
+                <p><strong>3. 服务条款问题：</strong>使用第三方解析服务可能违反视频平台的服务条款。因使用此功能导致的账号限制或封禁等风险，本软件概不负责。</p>
+                
+                <p><strong>4. 广告与安全风险：</strong>第三方解析服务可能包含广告、弹窗或不安全内容，我们无法控制这些内容，也不对这些内容负责。建议您使用广告拦截工具保护自己。</p>
+                
+                <p><strong>5. 内容版权声明：</strong>请尊重内容创作者的权益，解析获取的视频仅供个人学习交流使用，严禁用于商业目的或公开传播。</p>
+                
+                <p><strong>6. 官方限制与反制：</strong>视频平台可能针对解析行为进行反制或限制。使用第三方解析可能导致平台对您的观看体验施加限制或其他不良影响。</p>
+                
+                <p><strong>7. 个人信息安全：</strong>使用第三方解析服务时，您可能会向第三方服务器发送请求，我们不对第三方如何处理您的请求信息负责。</p>
+                
+                <p><strong>8. 学习交流限制：</strong>本功能仅供技术学习、研究和交流目的使用，不得用于规避付费内容或侵犯他人权益。</p>
+
+                <p><strong>9. 免责更新声明：</strong>本免责声明可能随时更新，继续使用第三方解析功能意味着您接受最新版本的免责声明。</p>
+            </div>
+            <div class="disclaimer-confirm">
+                <p class="disclaimer-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    我理解并接受上述风险与责任，且同意仅出于学习交流目的使用此功能
+                </p>
+                <div class="timer-container">
+                    <span id="disclaimerTimer">请等待10秒钟...</span>
+                </div>
+                <div class="disclaimer-buttons">
+                    <button id="rejectParseDisclaimer" class="btn btn-secondary">拒绝并返回</button>
+                    <button id="acceptParseDisclaimer" class="btn btn-primary" disabled>我已阅读并同意(10)</button>
+                </div>
+            </div>
+        </div>
     </div>
   </div>
 

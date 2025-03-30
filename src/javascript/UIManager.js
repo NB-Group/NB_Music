@@ -30,8 +30,9 @@ class UIManager {
         this.initializeSearchSuggestions();
         this.initializeCustomSelects();
         this.initializeWelcomeDialog();
-        this.initializeTrayControls(); // 新增托盘控制初始化
+        this.initializeTrayControls();
         this.autoMaximize();
+        this.initVideoParseSettings();
     }
     initializeSearchSuggestions() {
         const searchInput = document.querySelector(".search input");
@@ -516,11 +517,7 @@ class UIManager {
         window.addEventListener("keydown", (e) => {
             // F12 打开开发者工具
             if (e.key === "F12") {
-                // 检查是否启用了开发者工具设置
-                const devToolsEnabled = this.settingManager.getSetting("devToolsEnabled") === "true";
-                if (devToolsEnabled || !app.isPackaged) { // 在开发环境中始终可用
-                    ipcRenderer.send("open-dev-tools");
-                }
+                this.F12();
             }
 
             // 空格键控制播放/暂停
@@ -931,135 +928,70 @@ class UIManager {
                 return;
             }
 
-            // 从原生select中获取选项
-            const options = Array.from(select.options).map((option) => ({
-                value: option.value,
-                text: option.textContent,
-                selected: option.selected
-            }));
-
-            // 如果原select有change事件处理器，需要保留该行为
-            const onChangeCallback = (value) => {
-                // 创建并触发一个合成的change事件
-                const event = new Event("change", { bubbles: true });
-                select.value = value;
-                select.dispatchEvent(event);
-            };
-
-            // 标记为已初始化
-            select.classList.add("custom-select-initialized");
-
             // 创建自定义下拉框
-            this.createCustomSelect(select, options, onChangeCallback);
+            const customSelect = document.createElement("div");
+            customSelect.className = "custom-select";
+            select.parentNode.insertBefore(customSelect, select);
+            customSelect.appendChild(select);
+
+            // 将HTMLCollection转换为数组，然后使用map
+            const optionsArray = Array.from(select.options);
+            
+            // 添加自定义下拉框的样式和功能
+            customSelect.innerHTML = `
+                <div class="custom-select-header">
+                    <span class="custom-select-selected">${select.value}</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="custom-select-options">
+                    ${optionsArray.map(option => `<div class="custom-select-option" data-value="${option.value}">${option.text}</div>`).join('')}
+                </div>
+            `;
+
+            // 添加事件监听
+            customSelect.addEventListener("click", () => {
+                customSelect.classList.toggle("open");
+            });
+
+            const options = customSelect.querySelectorAll(".custom-select-option");
+            options.forEach((option) => {
+                option.addEventListener("click", () => {
+                    const selectedValue = option.dataset.value;
+                    select.value = selectedValue;
+                    customSelect.querySelector(".custom-select-selected").textContent = selectedValue;
+                    customSelect.classList.remove("open");
+                });
+            });
+
+            // 添加自定义下拉框的关闭功能
+            document.addEventListener("click", (e) => {
+                if (e.target !== customSelect && !customSelect.contains(e.target)) {
+                    customSelect.classList.remove("open");
+                }
+            });
+
+            // 标记已初始化
+            select.classList.add("custom-select-initialized");
         });
+    }
+
+    // 添加F12方法
+    F12() {
+        if (document.activeElement.tagName === "INPUT") return;
+        try {
+            // 检查是否启用了开发者工具设置
+            const devToolsEnabled = this.settingManager.getSetting("devToolsEnabled") === "true";
+            if (devToolsEnabled || !window.app?.isPackaged) { // 在开发环境中始终可用
+                ipcRenderer.send("open-dev-tools");
+            }
+        } catch (error) {
+            console.error("无法打开开发者工具:", error);
+        }
     }
 
     /**
-     * 创建自定义下拉框
-     * @param {HTMLElement} selectElement - 原始select元素
-     * @param {Array} options - 选项数组，每项包含value和text
-     * @param {Function} onChangeCallback - 值变化时的回调函数
+     * 初始化欢迎对话框相关事件
      */
-    createCustomSelect(selectElement, options, onChangeCallback) {
-        // 创建容器并保持原始select的属性
-        const customSelect = document.createElement("div");
-        customSelect.className = "custom-select";
-        customSelect.id = selectElement.id || "";
-        if (selectElement.disabled) {
-            customSelect.classList.add("disabled");
-        }
-
-        // 获取当前选中项
-        const selectedOption = options.find((opt) => opt.selected) || options[0];
-
-        // 创建选中项显示区域
-        const selectSelected = document.createElement("div");
-        selectSelected.className = "select-selected";
-        selectSelected.textContent = selectedOption ? selectedOption.text : "";
-        customSelect.appendChild(selectSelected);
-
-        // 创建下拉选项容器
-        const selectItems = document.createElement("div");
-        selectItems.className = "select-items";
-        customSelect.appendChild(selectItems);
-
-        // 添加所有选项
-        options.forEach((option) => {
-            const item = document.createElement("div");
-            item.className = "select-item";
-            if (option.selected) {
-                item.classList.add("selected");
-            }
-            item.textContent = option.text;
-            item.dataset.value = option.value;
-
-            // 点击选项时更新选中状态
-            item.addEventListener("click", (e) => {
-                e.stopPropagation();
-
-                // 视觉上的选中效果
-                selectItems.querySelectorAll(".select-item").forEach((el) => {
-                    el.classList.remove("selected");
-                });
-                item.classList.add("selected");
-
-                // 更新显示文本
-                selectSelected.textContent = option.text;
-
-                // 关闭下拉框
-                selectSelected.classList.remove("open");
-                selectItems.classList.remove("open");
-
-                // 调用回调函数
-                if (onChangeCallback) {
-                    onChangeCallback(option.value);
-                }
-            });
-
-            selectItems.appendChild(item);
-        });
-
-        // 点击选中区域时切换下拉框显示状态
-        selectSelected.addEventListener("click", (e) => {
-            e.stopPropagation();
-
-            // 关闭其他所有已打开的下拉框
-            document.querySelectorAll(".select-selected.open").forEach((el) => {
-                if (el !== selectSelected) {
-                    el.classList.remove("open");
-                    el.nextElementSibling.classList.remove("open");
-                }
-            });
-
-            // 切换当前下拉框状态
-            selectSelected.classList.toggle("open");
-            selectItems.classList.toggle("open");
-        });
-
-        // 点击页面其他区域时关闭下拉框
-        document.addEventListener("click", () => {
-            selectSelected.classList.remove("open");
-            selectItems.classList.remove("open");
-        });
-
-        // 在原select位置插入自定义下拉框，并隐藏原select
-        selectElement.parentNode.insertBefore(customSelect, selectElement);
-        selectElement.style.display = "none";
-    }
-
-    showDefaultUi() {
-        // 设置默认UI显示
-        document.querySelector(".player-content .cover .cover-img").src = "../img/NB_Music.png";
-        document.querySelector("html").style.setProperty("--bgul", "url(../../img/NB_Music.png)");
-        document.querySelector("video")?.remove();
-        document.querySelector(".player .info .title").textContent = "NB Music";
-        document.querySelector(".player .info .artist").textContent = "欢迎使用";
-        document.querySelector(".control>.buttons>.play").classList = "play paused";
-        document.querySelector(".progress-bar-inner").style.width = "0%";
-        this.audioPlayer.audio.src = "";
-        this.lyricsPlayer.changeLyrics("");
-    }
-
     initializeWelcomeDialog() {
         // 处理复选框状态变化
         const agreeCheckbox = document.getElementById("agreeCheckbox");
@@ -1130,6 +1062,50 @@ class UIManager {
         }
     }
 
+    // 修复sortedInterfaces.forEach使用索引的问题
+    initInterfaceSelector() {
+        const interfaces = this.settingManager.getSetting('thirdPartyInterfaces');
+        const lastUsed = this.settingManager.getSetting('lastUsedInterface');
+        const dropdownMenu = document.querySelector('#interfaceSelector .dropdown-menu');
+        const dropdownToggle = document.querySelector('#interfaceSelector .dropdown-toggle');
+        
+        if (!dropdownMenu || !dropdownToggle) return;
+        
+        // 清空现有选项
+        dropdownMenu.innerHTML = '';
+        
+        // 优先显示移动端可用的接口
+        const sortedInterfaces = [...interfaces].sort((a, b) => b.mobile - a.mobile);
+        
+        // 添加接口选项
+        sortedInterfaces.forEach((item) => {
+            const originalIndex = interfaces.findIndex(i => i.name === item.name);
+            const option = document.createElement('a');
+            option.classList.add('dropdown-item');
+            
+            // 如果是移动端可用接口，添加标记
+            if (item.mobile === 1) {
+                option.innerHTML = `${item.name} <span style="color: var(--theme-1); font-size: 0.8em;">(推荐)</span>`;
+            } else {
+                option.textContent = item.name;
+            }
+            
+            option.dataset.index = originalIndex;
+            option.addEventListener('click', () => {
+                this.settingManager.setSetting('lastUsedInterface', originalIndex);
+                dropdownToggle.innerHTML = option.innerHTML;
+                dropdownMenu.classList.remove('show');
+            });
+            
+            dropdownMenu.appendChild(option);
+            
+            // 设置默认选中项
+            if (originalIndex === lastUsed) {
+                dropdownToggle.innerHTML = option.innerHTML;
+            }
+        });
+    }
+
     /**
      * 初始化托盘控制相关功能
      */
@@ -1171,8 +1147,7 @@ class UIManager {
         this.audioPlayer.audio.addEventListener("play", () => this.updateTrayInfo());
         this.audioPlayer.audio.addEventListener("pause", () => this.updateTrayInfo());
 
-        // 修复：不再使用不存在的事件监听方法
-        // 监听歌曲切换时更新托盘信息 - 通过UIManager内部方法调用
+        // 歌曲切换时更新托盘信息
         this.songChangedHandler = () => this.updateTrayInfo();
 
         // 窗口显示/隐藏时也更新托盘
@@ -1231,12 +1206,198 @@ class UIManager {
         }
     }
 
+    /**
+     * 设置自动最大化
+     */
     autoMaximize() {
-        if (this.settingManager.getSetting("autoMaximize") === "true") {
-            ipcRenderer.send("window-maximize", "maximize");
-        } else {
-            ipcRenderer.send("window-maximize", "unmaximize");
+        // ... existing code ...
+    }
+
+    /**
+     * 初始化视频解析相关UI和事件
+     */
+    initVideoParseSettings() {
+        // 设置解析方式UI状态
+        const currentMethod = this.settingManager.getSetting('videoParseMethod');
+        document.querySelectorAll('[data-key="videoParseMethod"]').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === currentMethod);
+        });
+        
+        // 显示/隐藏接口选择器
+        const interfaceSelector = document.getElementById('interfaceSelector');
+        if (interfaceSelector) {
+            interfaceSelector.style.display = 
+                currentMethod === 'thirdParty' ? 'grid' : 'none';
         }
+        
+        // 初始化接口选择下拉菜单
+        this.initInterfaceSelector();
+        
+        // 监听解析方式变更
+        document.querySelectorAll('[data-key="videoParseMethod"]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const newMethod = e.target.dataset.value;
+                
+                // 如果选择第三方解析且未接受免责声明
+                if (newMethod === 'thirdParty' && 
+                    !this.settingManager.getSetting('hasAcceptedParseDisclaimer')) {
+                    this.showParseDisclaimerDialog();
+                    return; // 等待用户确认
+                }
+                
+                // 更新显示/隐藏接口选择器
+                if (interfaceSelector) {
+                    interfaceSelector.style.display = 
+                        newMethod === 'thirdParty' ? 'grid' : 'none';
+                }
+            });
+        });
+        
+        // 监听接口选择
+        const dropdownToggle = document.querySelector('#interfaceSelector .dropdown-toggle');
+        const dropdownMenu = document.querySelector('#interfaceSelector .dropdown-menu');
+        
+        if (dropdownToggle && dropdownMenu) {
+            // 点击切换下拉菜单显示/隐藏
+            dropdownToggle.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('show');
+            });
+            
+            // 点击外部区域关闭下拉菜单
+            document.addEventListener('click', (e) => {
+                if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        }
+    }
+
+    /**
+     * 显示第三方解析免责声明对话框
+     */
+    showParseDisclaimerDialog() {
+        // 显示免责声明对话框
+        const disclaimerDialog = document.getElementById('parseDisclaimerDialog');
+        const acceptBtn = document.getElementById('acceptParseDisclaimer');
+        const rejectBtn = document.getElementById('rejectParseDisclaimer');
+        const closeBtn = document.getElementById('closeDisclaimerDialog');
+        const timerSpan = document.getElementById('disclaimerTimer');
+        
+        if (!disclaimerDialog || !acceptBtn || !rejectBtn) {
+            console.error('找不到免责声明对话框元素');
+            return;
+        }
+        
+        // 显示对话框
+        disclaimerDialog.classList.remove('hide');
+        
+        // 设置按钮初始状态
+        acceptBtn.disabled = true;
+        
+        // 10秒倒计时
+        let countdown = 10;
+        acceptBtn.textContent = `我已阅读并同意(${countdown})`;
+        
+        const timer = setInterval(() => {
+            countdown--;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                acceptBtn.disabled = false;
+                acceptBtn.textContent = '我已阅读并同意';
+                timerSpan.textContent = '请确认您的选择';
+            } else {
+                acceptBtn.textContent = `我已阅读并同意(${countdown})`;
+                timerSpan.textContent = `请等待${countdown}秒钟...`;
+            }
+        }, 1000);
+        
+        // 存储计时器引用，以便在对话框关闭时清除
+        this.disclaimerTimer = timer;
+        
+        // 绑定按钮事件
+        const handleAccept = () => {
+            clearInterval(this.disclaimerTimer);
+            disclaimerDialog.classList.add('hide');
+            this.handleAcceptParse();
+            
+            // 移除事件监听器
+            acceptBtn.removeEventListener('click', handleAccept);
+            rejectBtn.removeEventListener('click', handleReject);
+            closeBtn.removeEventListener('click', handleReject);
+        };
+        
+        const handleReject = () => {
+            clearInterval(this.disclaimerTimer);
+            disclaimerDialog.classList.add('hide');
+            this.handleRejectParse();
+            
+            // 移除事件监听器
+            acceptBtn.removeEventListener('click', handleAccept);
+            rejectBtn.removeEventListener('click', handleReject);
+            closeBtn.removeEventListener('click', handleReject);
+        };
+        
+        // 清除之前可能的事件监听器
+        acceptBtn.removeEventListener('click', handleAccept);
+        rejectBtn.removeEventListener('click', handleReject);
+        closeBtn.removeEventListener('click', handleReject);
+        
+        // 添加新的事件监听器
+        acceptBtn.addEventListener('click', handleAccept);
+        rejectBtn.addEventListener('click', handleReject);
+        closeBtn.addEventListener('click', handleReject);
+    }
+
+    /**
+     * 处理用户接受免责声明
+     */
+    handleAcceptParse() {
+        // 更新设置
+        this.settingManager.updateSetting('hasAcceptedParseDisclaimer', true);
+        this.settingManager.updateSetting('videoParseMethod', 'thirdParty');
+        
+        // 显示持久警告提示，提醒用户已开启第三方解析
+        if (!this.settingManager.getSetting('thirdPartyParseWarned')) {
+            this.showNotification('已开启第三方解析功能，使用时请注意风险', 'warning', 10000);
+            this.settingManager.updateSetting('thirdPartyParseWarned', true);
+        }
+        
+        // 更新UI
+        const officialRadio = document.getElementById('parseMethodOfficial');
+        const thirdPartyRadio = document.getElementById('parseMethodThirdParty');
+        const interfaceSelector = document.querySelector('.third-party-interface-selector');
+        
+        if (officialRadio) officialRadio.checked = false;
+        if (thirdPartyRadio) thirdPartyRadio.checked = true;
+        
+        // 显示接口选择器
+        if (interfaceSelector) {
+            interfaceSelector.classList.remove('hide');
+        }
+        
+        // 确保接口选择器初始化
+        this.initInterfaceSelector();
+        
+        console.log('用户已接受第三方解析免责声明');
+    }
+
+    /**
+     * 处理拒绝免责声明
+     */
+    handleRejectParse() {
+        // 恢复官方解析选项的活跃状态
+        document.querySelectorAll('[data-key="videoParseMethod"]').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === 'official');
+        });
+        
+        // 隐藏对话框
+        const dialog = document.getElementById('parseDisclaimerDialog');
+        if (dialog) {
+            dialog.classList.add('hide');
+        }
+        
+        // 显示通知
+        this.showNotification('已取消开启第三方解析功能', 'info');
     }
 }
 

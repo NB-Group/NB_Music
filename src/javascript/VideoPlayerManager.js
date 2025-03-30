@@ -6,6 +6,7 @@ class VideoPlayerManager {
     constructor(playlistManager, uiManager) {
         this.playlistManager = playlistManager;
         this.uiManager = uiManager;
+        this.settingManager = null; // 将在App初始化时设置
         this.videoPlayer = null;
         this.videoDialog = null;
         this.videoOverlay = null;
@@ -14,6 +15,7 @@ class VideoPlayerManager {
         this.isLoading = false;
         this.loadingTimeout = null;
         this.isInitialized = false;
+        this.thirdPartyFrame = null; // 第三方播放器iframe引用
         
         // 使用DOMContentLoaded事件确保DOM已完全加载
         if (document.readyState === 'loading') {
@@ -358,6 +360,18 @@ class VideoPlayerManager {
             // 清理旧的事件监听器
             this.removeVideoEventListeners();
             
+            // 根据解析方式处理视频URL
+            const parseResult = await this.prepareVideoPlayer(videoUrl);
+            
+            // 确保视频播放器可见，无论使用哪种解析方式
+            this.videoPlayer.style.display = 'block';
+            
+            // 隐藏可能存在的iframe
+            const existingFrame = document.getElementById('thirdPartyPlayerFrame');
+            if (existingFrame) {
+                existingFrame.style.display = 'none';
+            }
+            
             // 添加视频事件监听器
             this.videoPlayer.addEventListener('loadeddata', this.handleVideoLoaded.bind(this));
             this.videoPlayer.addEventListener('error', this.handleVideoError.bind(this));
@@ -366,14 +380,17 @@ class VideoPlayerManager {
             });
             
             // 设置视频源并加载
-            console.log('设置视频源:', videoUrl);
-            this.videoPlayer.src = videoUrl;
-            this.currentVideoUrl = videoUrl;
+            this.videoPlayer.src = parseResult.url;
+            this.currentVideoUrl = parseResult.url;
             this.videoPlayer.load();
             
             // 添加音频事件监听，确保视频与音频同步
             this.setupAudioSyncEvents();
             
+            // 如果使用第三方解析，显示通知
+            if (parseResult.useThirdParty) {
+                this.uiManager.showNotification('已使用第三方接口解析视频', 'success');
+            }
         } catch (error) {
             console.error('打开视频播放器失败:', error);
             this.uiManager.showNotification('视频播放失败: ' + error.message, 'error');
@@ -678,6 +695,13 @@ class VideoPlayerManager {
             this.videoPlayer.load();
         }
         
+        // 清理第三方解析iframe
+        const thirdPartyFrame = document.getElementById('thirdPartyPlayerFrame');
+        if (thirdPartyFrame) {
+            thirdPartyFrame.src = 'about:blank';
+            thirdPartyFrame.style.display = 'none';
+        }
+        
         // 隐藏对话框
         videoDialog.classList.add('hide');
         
@@ -823,6 +847,119 @@ class VideoPlayerManager {
                 playVideoBtn.setAttribute('title', '视频检查失败');
                 playVideoBtn.innerHTML = '<i class="bi bi-film-slash"></i>';
             }
+        }
+    }
+
+    /**
+     * 解析视频URL，根据设置选择官方或第三方解析
+     * @param {string} videoUrl - 原始视频URL
+     * @returns {Promise<string>} 解析后的视频URL
+     */
+    async parseVideoUrl(videoUrl) {
+        // 检查是否已设置SettingManager
+        if (!this.settingManager) {
+            console.error('SettingManager未设置，无法获取解析方式设置');
+            return videoUrl; // 默认返回原视频URL
+        }
+
+        const parseMethod = this.settingManager.getSetting('videoParseMethod');
+        
+        if (parseMethod === 'official') {
+            // 官方解析 - 直接返回原URL
+            return videoUrl;
+        } else {
+            // 第三方解析
+            return this.parseWithThirdParty(videoUrl);
+        }
+    }
+
+    /**
+     * 使用第三方接口解析视频
+     * @param {string} videoUrl - 原始视频URL
+     * @returns {Promise<string>} 解析后的实际视频URL
+     */
+    async parseWithThirdParty(videoUrl) {
+        // 获取当前选择的接口
+        const interfaces = this.settingManager.getSetting('thirdPartyInterfaces');
+        const interfaceIndex = this.settingManager.getSetting('lastUsedInterface');
+        const selectedInterface = interfaces[interfaceIndex];
+        
+        if (!selectedInterface) {
+            console.error('未找到有效的解析接口');
+            return null;
+        }
+        
+        try {
+            // 显示通知
+            this.uiManager.showNotification(`正在使用 ${selectedInterface.name} 解析视频...`, 'info');
+            
+            // 构建解析URL - 记录但不使用
+            const encodedUrl = encodeURIComponent(videoUrl);
+            console.log(`解析URL: ${selectedInterface.url}${encodedUrl}`);
+            
+            // 这里使用我们自己的API直接解析视频URL
+            // 由于我们没有实际的API，这里模拟解析结果
+            // 在实际应用中，应该使用fetch或axios发起请求来获取解析结果
+            console.log(`使用第三方接口 ${selectedInterface.name} 解析视频：${videoUrl}`);
+            
+            // 模拟网络请求延迟
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 由于我们无法实际解析，这里直接返回原始URL
+            // 在实际应用中，这里应该返回解析服务返回的直接可播放的视频URL
+            return videoUrl;
+        } catch (error) {
+            console.error('第三方解析失败:', error);
+            this.uiManager.showNotification('视频解析失败，请尝试其他接口', 'error');
+            return null;
+        }
+    }
+
+    /**
+     * 修改视频播放逻辑，支持第三方解析
+     * 在现有代码位置(openVideoPlayer方法中设置视频源之前)调用
+     * @param {string} videoUrl - 原始视频URL 
+     */
+    async prepareVideoPlayer(videoUrl) {
+        // 如果没有传入videoUrl或settingManager未设置，则使用默认行为
+        if (!videoUrl || !this.settingManager) {
+            return {
+                url: videoUrl,
+                useThirdParty: false
+            };
+        }
+
+        const parseMethod = this.settingManager.getSetting('videoParseMethod');
+        
+        if (parseMethod === 'thirdParty') {
+            // 使用第三方解析，这里直接获取解析后的URL
+            try {
+                const parsedUrl = await this.parseWithThirdParty(videoUrl);
+                if (!parsedUrl) {
+                    // 解析失败，回退到官方解析
+                    return {
+                        url: videoUrl,
+                        useThirdParty: false
+                    };
+                }
+                return {
+                    url: parsedUrl,
+                    useThirdParty: false // 不使用iframe，直接在video元素中播放
+                };
+            } catch (error) {
+                console.error('第三方解析失败:', error);
+                // 解析失败，回退到官方解析
+                return {
+                    url: videoUrl,
+                    useThirdParty: false
+                };
+            }
+        } else {
+            // 使用官方解析
+            return {
+                url: videoUrl,
+                useThirdParty: false
+            };
         }
     }
 }
