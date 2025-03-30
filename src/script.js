@@ -1,5 +1,5 @@
 "use strict";
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, shell } = require("electron");
 const AudioPlayer = require("./javascript/AudioPlayer.js");
 const LyricsPlayer = require("./javascript/LyricsPlayer.js");
 const UIManager = require("./javascript/UIManager.js");
@@ -181,12 +181,8 @@ class App {
             if (this.playlistManager.playlist.length > 0) {
                 // 使用保存的播放索引
                 const index = this.playlistManager.playingNow || 0;
-                
-                // 检查是否启用了自动播放
-                const autoPlay = this.settingManager.getSetting("autoPlayOnStartup") === "true";
-                
-                // 不重置进度，根据设置决定是否自动播放
-                this.playlistManager.setPlayingNow(index, false, autoPlay);
+                // 不重置进度
+                this.playlistManager.setPlayingNow(index, false);
                 this.uiManager.renderPlaylist();
             }
 

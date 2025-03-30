@@ -15,9 +15,10 @@ class AudioPlayer {
         this.eventListeners = {};
         
         this.audio.addEventListener("timeupdate", () => {
-            // 增加保存频率：每10秒保存一次进度
+            // 增加保存频率：每1秒保存一次进度
             const now = Date.now();
-            if ((now - this.lastProgressSaveTime) > 10000) {
+            if ((now - this.lastProgressSaveTime) > 1000 && 
+                this.settingManager && this.settingManager.getSetting('savePlaybackProgress')) {
                 this.playlistManager.savePlaylists();
                 this.lastProgressSaveTime = now;
             }
@@ -25,17 +26,24 @@ class AudioPlayer {
 
         // 在暂停时保存进度
         this.audio.addEventListener("pause", () => {
-            this.playlistManager.savePlaylists();
-            this.lastProgressSaveTime = Date.now();
+            if (this.settingManager && this.settingManager.getSetting('savePlaybackProgress')) {
+                this.playlistManager.savePlaylists();
+                this.lastProgressSaveTime = Date.now();
+            }
             this.isPlayRequestPending = false; // 重置请求状态
         });
         
         // 在播放结束时保存进度
         this.audio.addEventListener('ended', () => {
-            this.playlistManager.savePlaylists();
-            this.lastProgressSaveTime = Date.now();
+            if (this.settingManager && this.settingManager.getSetting('savePlaybackProgress')) {
+                this.playlistManager.savePlaylists();
+                this.lastProgressSaveTime = Date.now();
+            }
             this.isPlayRequestPending = false; // 重置请求状态
-            this.next();
+            
+            if (this.playlistManager) {
+                this.playlistManager.next();
+            }
         });
         
         // 监听错误事件
@@ -57,7 +65,9 @@ class AudioPlayer {
         
         // 在离开页面前保存进度
         window.addEventListener('beforeunload', () => {
-            this.playlistManager.savePlaylists();
+            if (this.settingManager && this.settingManager.getSetting('savePlaybackProgress')) {
+                this.playlistManager.savePlaylists();
+            }
         });
 
         if ("mediaSession" in navigator) {
@@ -283,30 +293,24 @@ class AudioPlayer {
         this.audio.volume = currentVolume;
     
         let nextIndex;
-        switch (this.playlistManager.playMode) {
-            case 'shuffle': {
-                // 随机播放
+        if (this.playlistManager.playMode === 'shuffle') {
+            // 随机播放
+            nextIndex = Math.floor(Math.random() * this.playlistManager.playlist.length);
+            while(nextIndex === this.playlistManager.playingNow && this.playlistManager.playlist.length > 1) {
                 nextIndex = Math.floor(Math.random() * this.playlistManager.playlist.length);
-                while (nextIndex === this.playlistManager.playingNow && this.playlistManager.playlist.length > 1) {
-                    nextIndex = Math.floor(Math.random() * this.playlistManager.playlist.length);
-                }
-                break;
             }
-            case 'repeat': {
-                // 列表循环模式下使用下一首逻辑
-                nextIndex = this.playlistManager.playingNow < this.playlistManager.playlist.length - 1 ?
-                    this.playlistManager.playingNow + 1 :
-                    0;
-                break;
-            }
-            default: {
-                nextIndex = this.playlistManager.playingNow;
-            }
+        } else {
+            // 列表循环和单曲循环模式下都使用相同的下一首逻辑
+            nextIndex = this.playlistManager.playingNow < this.playlistManager.playlist.length - 1 ? 
+                this.playlistManager.playingNow + 1 : 
+                0;
         }
+        
         this.playlistManager.setPlayingNow(nextIndex);
     }
 
     // 设置 settingManager 的方法
+
     setSettingManager(settingManager) {
         this.settingManager = settingManager;
         // 当settingManager被设置时，立即更新音量
@@ -319,6 +323,25 @@ class AudioPlayer {
     // 设置 uiManager 引用
     setUiManager(uiManager) {
         this.uimanager = uiManager;
+    }
+    
+    // 设置均衡器管理器
+    setEQManager(eqManager) {
+        this.eqManager = eqManager;
+    }
+    
+    // 应用均衡器设置
+    applyEQSettings(settings) {
+        if (this.eqManager) {
+            this.eqManager.applySettings(settings);
+        }
+    }
+    
+    // 应用均衡器预设
+    applyEQPreset(presetName) {
+        if (this.eqManager) {
+            this.eqManager.applyPreset(presetName);
+        }
     }
     
     // 添加事件监听器

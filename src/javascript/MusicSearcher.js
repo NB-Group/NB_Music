@@ -7,11 +7,6 @@ class MusicSearcher {
     constructor() {
         this.COOKIE = "";
         this.settingManager = null; // 将由外部设置
-        // 添加歌词缓存对象
-        this.lyricsCache = {
-            netease: {},
-            bilibili: {}
-        };
     }
 
     // 新增：设置依赖
@@ -82,7 +77,6 @@ class MusicSearcher {
             throw error;
         }
     }
-
     async searchMusic(keyword, page = 1) {
         if (!keyword) return;
 
@@ -213,6 +207,17 @@ class MusicSearcher {
                 // 点击事件处理
                 div.addEventListener("click", async () => {
                     try {
+                        // 这玩意有Bug，懒得修了，直接删（Doge）
+                        // const loveBtn = e.target.closest('.love');
+                        // if (loveBtn) {
+                        //     e.stopPropagation();
+                        //     if (loveBtn.querySelector("i").classList.contains('loved')) {
+                        //         this.favoriteManager.removeFromFavorites(song, song.bvid);
+                        //     } else {
+                        //         this.favoriteManager.addToFavorites(song, song.bvid);
+                        //     }
+                        //     return ;
+                        // }
                         const cleanTitle = song.title.replace(/<em class="keyword">|<\/em>/g, "");
                         if (this.playlistManager.playlist.find((item) => item.title === cleanTitle)) {
                             document.querySelector("#function-list .player").click();
@@ -259,7 +264,7 @@ class MusicSearcher {
                             video: videoUrl,
                             lyric: await (this.settingManager.getSetting('lyricSearchType') === 'custom'
                                 ? this.showLyricSearchDialog(cleanTitle)
-                                : this.getLyrics(keyword, song.bvid, urls[2])) // 修改为传递bvid和cid
+                                : this.getLyrics(keyword))
                         };
 
                         // 恢复界面状态
@@ -344,194 +349,30 @@ class MusicSearcher {
         return [bestAudio.baseUrl, bestAudio.backupUrl, cid];
     }
 
-    async getLyrics(songName, bvid = null, cid = null, forceSource = null) {
+    async getLyrics(songName) {
         try {
-            // 确定使用的歌词来源
-            const lyricSource = forceSource || this.settingManager.getSetting('lyricSource') || 'netease';
-            
-            // 优先从缓存获取
-            if (lyricSource === 'bilibili' && bvid && cid && this.lyricsCache.bilibili[`${bvid}-${cid}`]) {
-                return this.lyricsCache.bilibili[`${bvid}-${cid}`];
-            } else if (lyricSource === 'netease' && songName && this.lyricsCache.netease[songName]) {
-                return this.lyricsCache.netease[songName];
-            }
-            
-            // 根据设置选择歌词来源
-            if (lyricSource === 'bilibili' && bvid && cid) {
-                try {
-                    // 显示加载状态
-                    this.showLoadingState(true);
-                    
-                    const lyrics = await this.getBilibiliSubtitle(bvid, cid);
-                    
-                    // 缓存结果
-                    if (lyrics && lyrics !== "暂无歌词，尽情欣赏音乐") {
-                        this.lyricsCache.bilibili[`${bvid}-${cid}`] = lyrics;
-                    }
-                    
-                    // 隐藏加载状态
-                    this.showLoadingState(false);
-                    
-                    return lyrics;
-                } catch (error) {
-                    console.error("获取B站字幕失败，尝试网易云歌词", error);
-                    // B站字幕获取失败，尝试网易云歌词
-                    if (songName) {
-                        return this.getLyrics(songName, bvid, cid, 'netease');
-                    }
-                    // 隐藏加载状态
-                    this.showLoadingState(false);
-                    return "暂无歌词，尽情欣赏音乐";
-                }
-            } else if (songName) {
-                try {
-                    // 显示加载状态
-                    this.showLoadingState(true);
-                    
-                    const searchResponse = await search({
-                        keywords: songName,
-                        limit: 1
-                    });
-                    const searchResult = searchResponse.body;
-                    if (!searchResult.result || !searchResult.result.songs || searchResult.result.songs.length === 0) {
-                        // 网易云搜索失败，如果有B站视频ID，尝试B站字幕
-                        if (bvid && cid && lyricSource !== 'netease') {
-                            return this.getLyrics(songName, bvid, cid, 'bilibili');
-                        }
-                        // 隐藏加载状态
-                        this.showLoadingState(false);
-                        return "暂无歌词，尽情欣赏音乐";
-                    }
-
-                    const songId = searchResult.result.songs[0].id;
-                    const yrcResponse = await lyric_new({ id: songId });
-
-                    if (!yrcResponse.body) {
-                        // 隐藏加载状态
-                        this.showLoadingState(false);
-                        return "暂无歌词，尽情欣赏音乐";
-                    }
-                    
-                    const yrcLyrics = yrcResponse.body;
-                    const lyrics = yrcLyrics.yrc ? yrcLyrics.yrc.lyric : yrcLyrics.lrc ? yrcLyrics.lrc.lyric : "暂无歌词，尽情欣赏音乐";
-                    
-                    // 缓存结果
-                    if (lyrics && lyrics !== "暂无歌词，尽情欣赏音乐") {
-                        this.lyricsCache.netease[songName] = lyrics;
-                    }
-                    
-                    // 隐藏加载状态
-                    this.showLoadingState(false);
-                    
-                    return lyrics;
-                } catch (error) {
-                    console.error("获取网易云歌词失败", error);
-                    // 网易云歌词获取失败，如果有B站视频ID，尝试B站字幕
-                    if (bvid && cid && lyricSource !== 'netease') {
-                        return this.getLyrics(songName, bvid, cid, 'bilibili');
-                    }
-                    // 隐藏加载状态
-                    this.showLoadingState(false);
-                    return "暂无歌词，尽情欣赏音乐";
-                }
-            }
-            
-            // 隐藏加载状态
-            this.showLoadingState(false);
-            return "暂无歌词，尽情欣赏音乐";
-        } catch (error) {
-            console.error("获取歌词失败", error);
-            // 隐藏加载状态
-            this.showLoadingState(false);
-            return "暂无歌词，尽情欣赏音乐";
-        }
-    }
-    
-    // 新增：获取B站字幕
-    async getBilibiliSubtitle(bvid, cid) {
-        try {
-            // 构建API请求
-            const url = `https://api.bilibili.com/x/player/wbi/v2?bvid=${bvid}&cid=${cid}`;
-            
-            // 发送请求
-            const response = await axios.get(url);
-            
-            // 检查请求是否成功
-            if (response.data.code !== 0) {
-                throw new Error(`获取B站字幕失败：${response.data.message}`);
-            }
-            
-            // 提取字幕信息
-            const { subtitle } = response.data.data;
-            
-            // 如果没有字幕
-            if (!subtitle || !subtitle.list || subtitle.list.length === 0) {
+            const searchResponse = await search({
+                keywords: songName,
+                limit: 1
+            });
+            const searchResult = searchResponse.body;
+            if (!searchResult.result || !searchResult.result.songs || searchResult.result.songs.length === 0) {
                 return "暂无歌词，尽情欣赏音乐";
             }
-            
-            // 获取字幕列表中的第一个字幕
-            const firstSubtitle = subtitle.list[0];
-            
-            // 获取字幕文件的URL
-            const subtitleUrl = firstSubtitle.subtitle_url;
-            
-            // 如果URL以http://开头，需要转换为https://
-            const secureUrl = subtitleUrl.startsWith('http://') 
-                ? subtitleUrl.replace('http://', 'https://')
-                : subtitleUrl;
-                
-            // 获取字幕文件内容
-            const subtitleResponse = await axios.get(secureUrl);
-            
-            // 将字幕格式转换为歌词格式
-            return this.convertSubtitleToLyrics(subtitleResponse.data);
-        } catch (error) {
-            console.error("获取B站字幕失败：", error);
-            throw error;
-        }
-    }
-    
-    // 新增：将B站字幕格式转换为歌词格式
-    convertSubtitleToLyrics(subtitleData) {
-        // B站字幕通常是JSON格式，包含body字段，每个元素有from(开始时间)、to(结束时间)和content(内容)
-        if (!subtitleData || !subtitleData.body || !Array.isArray(subtitleData.body) || subtitleData.body.length === 0) {
-            return "暂无歌词，尽情欣赏音乐";
-        }
-        
-        // 排序字幕，确保按时间顺序
-        const sortedSubtitles = subtitleData.body.sort((a, b) => a.from - b.from);
-        
-        // 转换为LRC格式
-        return sortedSubtitles.map(item => {
-            // 转换秒为分:秒.毫秒格式
-            const minutes = Math.floor(item.from / 60);
-            const seconds = Math.floor(item.from % 60);
-            const milliseconds = Math.floor((item.from % 1) * 100);
-            
-            // 格式化时间标签：[mm:ss.xx]
-            const timeTag = `[${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}]`;
-            
-            // 返回带时间标签的歌词行
-            return `${timeTag}${item.content}`;
-        }).join('\n');
-    }
-    
-    // 新增：显示/隐藏加载状态
-    showLoadingState(isLoading) {
-        // 在实际项目中，这个方法会被替换为真实实现
-        // 这里只是一个占位符
-        if (window.app && window.app.uiManager) {
-            const progressBar = document.querySelector(".progress-bar-inner");
-            if (progressBar) {
-                if (isLoading) {
-                    progressBar.classList.add('loading');
-                } else {
-                    progressBar.classList.remove('loading');
-                }
-            }
-        }
-    }
 
+            const songId = searchResult.result.songs[0].id;
+
+            const yrcResponse = await lyric_new({ id: songId });
+
+            if (!yrcResponse.body) {
+                return "暂无歌词，尽情欣赏音乐";
+            }
+            const yrcLyrics = yrcResponse.body;
+            return yrcLyrics.yrc ? yrcLyrics.yrc.lyric : yrcLyrics.lrc ? yrcLyrics.lrc.lyric : "暂无歌词，尽情欣赏音乐";
+        } catch {
+            /* empty */
+        }
+    }
     async getBilibiliVideoUrl(bvid, cid) {
         try {
             // 如果cid不存在，尝试获取
@@ -645,7 +486,7 @@ class MusicSearcher {
                     try {
                         const lyric = await this.getLyrics(keyword);
                         resolve(lyric);
-                    } catch {
+                    } catch (error) {
                         resolve("暂无歌词，尽情欣赏音乐");
                     }
                 } else {
@@ -677,7 +518,6 @@ class MusicSearcher {
             keywordInput.select();
         });
     }
-
     async getSearchSuggestions(term) {
         if (!term) return [];
 

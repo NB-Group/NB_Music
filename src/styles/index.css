@@ -30,3 +30,76 @@
 
 /* 导入第三方库 */
 @import '../../node_modules/bootstrap-icons/font/bootstrap-icons.css';
+
+/* 均衡器面板样式 */
+.eq-panel {
+    position: absolute;
+    right: 20px;
+    bottom: 80px;
+    width: 300px;
+    padding: 20px;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: none;
+}
+
+.eq-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.eq-preset-container {
+    margin-bottom: 20px;
+}
+
+.eq-preset-container label {
+    margin-right: 10px;
+    color: var(--text-secondary);
+}
+
+.eq-preset-select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--background-primary);
+    color: var(--text-primary);
+}
+
+.eq-slider-container {
+    margin-bottom: 15px;
+}
+
+.eq-slider-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+.eq-slider {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.eq-value {
+    display: inline-block;
+    margin-left: 10px;
+    color: var(--text-primary);
+}
+
+.eq-apply-button {
+    width: 100%;
+    padding: 8px 0;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.eq-apply-button:hover {
+    background: var(--primary-hover);
+}

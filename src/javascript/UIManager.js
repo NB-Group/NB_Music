@@ -31,7 +31,6 @@ class UIManager {
         this.initializeCustomSelects();
         this.initializeWelcomeDialog();
         this.initializeTrayControls(); // 新增托盘控制初始化
-        this.autoMaximize();
     }
     initializeSearchSuggestions() {
         const searchInput = document.querySelector(".search input");
@@ -145,6 +144,126 @@ class UIManager {
         });
     }
     initializeAdvancedControls() {
+        // 添加均衡器控制按钮
+        const eqButton = document.createElement("button");
+        eqButton.className = "eq-button";
+        eqButton.innerHTML = "<i class='icon-eq'></i>";
+        eqButton.title = "均衡器设置";
+        document.querySelector(".buttons").appendChild(eqButton);
+        
+        // 创建均衡器控制面板
+        const eqPanel = document.createElement("div");
+        eqPanel.className = "eq-panel";
+        eqPanel.style.display = "none";
+        
+        // 添加面板标题
+        const panelTitle = document.createElement("h3");
+        panelTitle.textContent = "均衡器设置";
+        eqPanel.appendChild(panelTitle);
+        
+        // 添加预设选择
+        const presetContainer = document.createElement("div");
+        presetContainer.className = "eq-preset-container";
+        
+        const presetLabel = document.createElement("label");
+        presetLabel.textContent = "预设:";
+        presetContainer.appendChild(presetLabel);
+        
+        const presetSelect = document.createElement("select");
+        presetSelect.className = "eq-preset-select";
+        const presets = [
+            {value: "default", text: "默认"},
+            {value: "pop", text: "流行"},
+            {value: "rock", text: "摇滚"},
+            {value: "jazz", text: "爵士"},
+            {value: "classical", text: "古典"}
+        ];
+        presets.forEach(preset => {
+            const option = document.createElement("option");
+            option.value = preset.value;
+            option.textContent = preset.text;
+            presetSelect.appendChild(option);
+        });
+        presetContainer.appendChild(presetSelect);
+        eqPanel.appendChild(presetContainer);
+        
+        // 添加频率滑块
+        const freqSliders = [
+            {label: "31Hz", min: -12, max: 12, value: 0, step: 1},
+            {label: "62Hz", min: -12, max: 12, value: 0, step: 1},
+            {label: "125Hz", min: -12, max: 12, value: 0, step: 1},
+            {label: "250Hz", min: -12, max: 12, value: 0, step: 1},
+            {label: "500Hz", min: -12, max: 12, value: 0, step: 1},
+            {label: "1kHz", min: -12, max: 12, value: 0, step: 1},
+            {label: "2kHz", min: -12, max: 12, value: 0, step: 1},
+            {label: "4kHz", min: -12, max: 12, value: 0, step: 1},
+            {label: "8kHz", min: -12, max: 12, value: 0, step: 1},
+            {label: "16kHz", min: -12, max: 12, value: 0, step: 1}
+        ];
+        
+        freqSliders.forEach(freq => {
+            const sliderContainer = document.createElement("div");
+            sliderContainer.className = "eq-slider-container";
+            
+            const sliderLabel = document.createElement("label");
+            sliderLabel.textContent = freq.label;
+            sliderContainer.appendChild(sliderLabel);
+            
+            const slider = document.createElement("input");
+            slider.type = "range";
+            slider.className = "eq-slider";
+            slider.min = freq.min;
+            slider.max = freq.max;
+            slider.step = freq.step;
+            slider.value = freq.value;
+            sliderContainer.appendChild(slider);
+            
+            const valueDisplay = document.createElement("span");
+            valueDisplay.className = "eq-value";
+            valueDisplay.textContent = freq.value + "db";
+            sliderContainer.appendChild(valueDisplay);
+            
+            // 更新显示值
+            slider.addEventListener("input", () => {
+                valueDisplay.textContent = slider.value + "db";
+            });
+            
+            eqPanel.appendChild(sliderContainer);
+        });
+        
+        // 添加应用按钮
+        const applyButton = document.createElement("button");
+        applyButton.className = "eq-apply-button";
+        applyButton.textContent = "应用设置";
+        eqPanel.appendChild(applyButton);
+        
+        document.body.appendChild(eqPanel);
+        
+        // 添加均衡器按钮点击事件
+        eqButton.addEventListener("click", () => {
+            eqPanel.style.display = eqPanel.style.display === "none" ? "block" : "none";
+        });
+        
+        // 预设选择事件
+        presetSelect.addEventListener("change", () => {
+            this.audioPlayer.applyEQPreset(presetSelect.value);
+        });
+        
+        // 应用按钮事件
+        applyButton.addEventListener("click", () => {
+            const settings = {
+                frequency: [],
+                Q: 1.0,
+                gain: 0
+            };
+            
+            document.querySelectorAll(".eq-slider").forEach(slider => {
+                settings.frequency.push(parseInt(slider.value));
+            });
+            
+            this.audioPlayer.applyEQSettings(settings);
+        });
+        
         // 替换原有的速度选择下拉框实现
         const speedControl = document.querySelector(".speed-control");
         if (speedControl) {
@@ -268,57 +387,17 @@ class UIManager {
     initializeSettings() {
         // 监听歌词显示设置变更
         this.settingManager.addListener("lyricsEnabled", (newValue) => {
-            if (this.audioPlayer && this.audioPlayer.lyricsPlayer) {
-                this.audioPlayer.lyricsPlayer.setVisibility(newValue === "true");
-            }
-            
-            const lyricsContainer = document.getElementById("lyrics-container");
-            if (lyricsContainer) {
-                if (newValue === "true") {
-                    lyricsContainer.style.display = "block";
-                    
-                    // 延迟一点时间，确保DOM更新后再刷新布局
-                    setTimeout(() => {
-                        if (this.audioPlayer && this.audioPlayer.lyricsPlayer) {
-                            this.audioPlayer.lyricsPlayer.refreshLayout();
-                        }
-                    }, 100);
-                } else {
-                    lyricsContainer.style.display = "none";
-                }
+            if (this.lyricsPlayer) {
+                this.lyricsPlayer.setVisibility(newValue === "true");
             }
         });
-        
-        // 监听循环歌词同步设置变更
-        this.settingManager.addListener("loopLyricsEnabled", () => {
-            // 如果有活跃的歌词播放器，尝试重新检测循环
-            if (this.audioPlayer && this.audioPlayer.lyricsPlayer) {
-                // 清除现有检测状态
-                this.audioPlayer.lyricsPlayer.isLoopDetected = false;
-                this.audioPlayer.lyricsPlayer.originalSongDuration = null;
-                
-                // 重新检测
-                setTimeout(() => {
-                    this.audioPlayer.lyricsPlayer.detectLoopSong();
-                }, 500);
-            }
-        });
-        
-        // 应用默认设置
-        const lyricsEnabled = this.settingManager.getSetting("lyricsEnabled");
-        if (lyricsEnabled === "true" || lyricsEnabled === true) {
-            if (document.getElementById("lyrics-container")) {
-                document.getElementById("lyrics-container").style.display = "block";
-            }
-        } else {
-            if (document.getElementById("lyrics-container")) {
-                document.getElementById("lyrics-container").style.display = "none";
-            }
-        }
-
         // 主题切换事件
-        this.settingManager.addListener("theme", (newValue) => {
-            document.documentElement.setAttribute("data-theme", newValue);
+        this.settingManager.addListener("theme", (newValue, oldValue) => {
+            if (newValue == "auto") {
+                newValue = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.querySelector("html").classList.remove(oldValue);
+            document.querySelector("html").classList.add(newValue);
         });
 
         // 背景切换事件
@@ -379,56 +458,15 @@ class UIManager {
             }
         });
         
-        this.settingManager.addListener("desktopLyricsFontSize", () => {
+        this.settingManager.addListener("desktopLyricsFontSize", (newValue) => {
             if (this.lyricsPlayer && this.lyricsPlayer.desktopLyricsEnabled) {
                 this.lyricsPlayer.updateDesktopLyricsStyle();
             }
         });
         
-        this.settingManager.addListener("desktopLyricsOpacity", () => {
+        this.settingManager.addListener("desktopLyricsOpacity", (newValue) => {
             if (this.lyricsPlayer && this.lyricsPlayer.desktopLyricsEnabled) {
                 this.lyricsPlayer.updateDesktopLyricsStyle();
-            }
-        });
-
-        // 监听歌词来源设置变更
-        this.settingManager.addListener("lyricSource", async (newValue) => {
-            // 如果有当前播放的歌曲，则重新获取歌词并更新显示
-            if (this.audioPlayer && this.audioPlayer.lyricsPlayer && this.playlistManager) {
-                const currentSong = this.playlistManager.playlist[this.playlistManager.playingNow];
-                if (currentSong) {
-                    try {
-                        // 显示加载状态
-                        const progressBar = document.querySelector(".progress-bar-inner");
-                        progressBar.classList.add('loading');
-                        
-                        // 根据新的歌词来源重新获取歌词
-                        const newLyrics = await this.musicSearcher.getLyrics(
-                            currentSong.title, 
-                            currentSong.bvid, 
-                            currentSong.cid, 
-                            newValue
-                        );
-                        
-                        // 更新歌词显示
-                        if (this.audioPlayer.lyricsPlayer) {
-                            this.audioPlayer.lyricsPlayer.changeLyrics(newLyrics);
-                        }
-                        
-                        // 隐藏加载状态
-                        progressBar.classList.remove('loading');
-                        
-                        // 显示通知
-                        this.showNotification(`歌词来源已切换为${newValue === 'netease' ? '网易云歌词' : 'B站字幕'}`, "success");
-                    } catch (error) {
-                        console.error("切换歌词来源失败:", error);
-                        this.showNotification("切换歌词来源失败，请重试", "error");
-                        
-                        // 隐藏加载状态
-                        const progressBar = document.querySelector(".progress-bar-inner");
-                        progressBar.classList.remove('loading');
-                    }
-                }
             }
         });
 
@@ -556,10 +594,10 @@ class UIManager {
         window.addEventListener("keydown", (e) => {
             // F12 打开开发者工具
             if (e.key === "F12") {
-                // 检查是否启用了DevTools
-                const devToolsEnabled = this.settingManager.getSetting("devToolsEnabled");
-                if (devToolsEnabled === "true" || devToolsEnabled === true) {
-                    ipcRenderer.send("open-dev-tools-request", { devToolsEnabled: true });
+                // 检查是否启用了开发者工具设置
+                const devToolsEnabled = this.settingManager.getSetting("devToolsEnabled") === "true";
+                if (devToolsEnabled || !app.isPackaged) { // 在开发环境中始终可用
+                    ipcRenderer.send("open-dev-tools");
                 }
             }
 
@@ -610,13 +648,13 @@ class UIManager {
 
         // 侧边栏点击事件
         document.addEventListener("dblclick", (event) => {
-            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar") && this.settingManager.getSetting("hideSidebar") === "true") {
+            if (!event.target.closest(".sidebar") && !event.target.closest(".dock.sidebar") && this.settingManager.getSetting("hideSidebar") == "true") {
                 document.querySelector(".sidebar").style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.04, 0.92, 0.4, 0.97)";
                 document.querySelector(".sidebar").parentElement.style.gridTemplateColumns = "0 auto";
                 document.querySelector(".sidebar").style.opacity = "0";
                 // document.querySelector(".sidebar").style.display = "none";
             }
-            if (!event.target.closest(".titbar") && this.settingManager.getSetting("hideTitbar") === "true") {
+            if (!event.target.closest(".titbar") && this.settingManager.getSetting("hideTitbar") == "true") {
                 document.querySelectorAll(".titbar .fadein").forEach((fadeItem) => {
                     fadeItem.classList.add("fadeout");
                 });
@@ -1268,14 +1306,6 @@ class UIManager {
             }
         } catch (error) {
             console.error("更新托盘信息失败:", error);
-        }
-    }
-
-    autoMaximize() {
-        if (this.settingManager.getSetting("autoMaximize") === "true") {
-            ipcRenderer.send("window-maximize", "maximize");
-        } else {
-            ipcRenderer.send("window-maximize", "unmaximize");
         }
     }
 }

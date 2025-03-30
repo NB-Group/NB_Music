@@ -14,7 +14,8 @@ class PlaylistManager {
         this.currentTime = 0;
         this.currentLoadingController = null;
         this.currentPlayingBvid = null;
-
+        // 用于随机播放
+        this.shuffledlist = [];
         // 'repeat', 'shuffle', 'repeat-one'
         this.playMode = localStorage.getItem('nbmusic_play_mode') || 'repeat';
 
@@ -35,7 +36,41 @@ class PlaylistManager {
         }
         this.loadPlaylists();
     }
+    next() {
+        if (this.playlist.length === 0) return;
+        
+        let nextIndex;
+        switch (this.playMode) {
+            case 'shuffle':
+                // 随机播放
+                if (!this.shuffledlist.length) {
+                    this.shuffledlist = Array.from({length:this.playlist.length},(_, i)=>i);
+                    // Fisher-Yates算法，打乱顺序
+                    for (let i = 1; i < this.shuffledlist.length; i++) {
+                        const random = Math.floor(Math.random() * (i + 1));
+                        [this.shuffledlist[i], this.shuffledlist[random]] = [this.shuffledlist[random], this.shuffledlist[i]];
+                    }
+                 }
+                nextIndex = this.shuffledlist.shift();
+                // 检测是否已经循环完一轮
+                if (!nextIndex) {
+                    // 在重新打乱前临时放第一首
+                    nextIndex = 0;
+                }
+                break;
+            case 'repeat-one':
+                // 单曲循环
+                nextIndex = this.playingNow;
+                break;
+            case 'repeat':
+            default:
+                // 列表循环
+                nextIndex = (this.playingNow + 1) % this.playlist.length;
+                break;
+        }
 
+        this.setPlayingNow(nextIndex);
+    }
     togglePlayMode() {
         const modes = ['repeat', 'shuffle', 'repeat-one'];
         const currentIndex = modes.indexOf(this.playMode);
@@ -227,7 +262,7 @@ class PlaylistManager {
         }
     }
 
-    async setPlayingNow(index, replay = true, autoPlay = true) {
+    async setPlayingNow(index, replay = true) {
         try {
             if (this.playlist.length === 0) {
                 this.uiManager.showDefaultUi();
@@ -289,10 +324,10 @@ class PlaylistManager {
             }
 
             // 立即更新UI以提供视觉反馈
-            await this.updatePlayingUI(song);
+            await this.updatePlayingUI(song, replay);
 
             // 异步加载和播放音频
-            this.loadAndPlayAudio(song, replay, this.currentLoadingController.signal, autoPlay)
+            this.loadAndPlayAudio(song, replay, this.currentLoadingController.signal)
                 .catch(error => {
                     if (error.name === 'AbortError') {
                         console.log('加载被中断');
@@ -316,7 +351,7 @@ class PlaylistManager {
         }
     }
 
-    async updatePlayingUI(song) {
+    async updatePlayingUI(song, replay) {
         // 更新歌词
         this.lyricsPlayer.changeLyrics(song.lyric);
 
@@ -427,7 +462,7 @@ class PlaylistManager {
                         if (response.status === 403) {
                             throw new Error('访问被拒绝');
                         }
-                    } catch {
+                    } catch (error) {
                         console.warn('主音频URL不可用，尝试备用URL');
                         const urls = await this.musicSearcher.getAudioLink(song.bvid, true);
                         currentUrl = urls.length > 1 ? urls[1] : urls[0];
@@ -470,7 +505,7 @@ class PlaylistManager {
             }
         }
     }
-    async loadAndPlayAudio(song, replay, signal, autoPlay = true) {
+    async loadAndPlayAudio(song, replay, signal) {
         const playButton = document.querySelector(".control>.buttons>.play");
         const progressBar = document.querySelector(".player .control .progress .progress-bar .progress-bar-inner");
 
@@ -518,15 +553,9 @@ class PlaylistManager {
             await this.updateMediaSession(song);
             if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
 
-            // 根据autoPlay参数决定是否自动播放
-            if (autoPlay) {
-                // 播放音频
-                await this.audioPlayer.audio.play();
-                playButton.classList = "play played";
-            } else {
-                // 只加载不播放
-                playButton.classList = "play paused";
-            }
+            // 播放音频
+            await this.audioPlayer.audio.play();
+            playButton.classList = "play played";
 
             // 保存播放状态
             this.savePlaylists();

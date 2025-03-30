@@ -102,8 +102,7 @@ async function getBilibiliCookies(skipLocalCookies = false) {
         });
         const page = await browser.newPage();
         await page.goto("https://www.bilibili.com");
-        const context = browser.defaultBrowserContext();
-        const cookies = await context.cookies("https://www.bilibili.com");
+        const cookies = await page.cookies();
         const cookieString = formatCookieString(cookies);
         saveCookies(cookieString);
         await browser.close();
@@ -390,17 +389,11 @@ function createWindow() {
         win.minimize();
     });
 
-    ipcMain.on("window-maximize", (_, order) => {
-        if (order === 'maximize') {
-            win.maximize();
-        } else if (order === 'unmaximize') {
+    ipcMain.on("window-maximize", () => {
+        if (win.isMaximized()) {
             win.unmaximize();
         } else {
-            if (win.isMaximized()) {
-                win.unmaximize();
-            } else {
-                win.maximize();
-            }
+            win.maximize();
         }
     });
 
@@ -470,30 +463,18 @@ function createWindow() {
         }
     });
 
-    // 处理开发者工具请求，检查是否应该打开
-    ipcMain.on("open-dev-tools-request", (_, { devToolsEnabled }) => {
-        // 如果设置启用了开发者工具或者是在开发环境中，则打开开发者工具
-        if (devToolsEnabled || !app.isPackaged) {
-            if (win.webContents.isDevToolsOpened()) {
-                win.webContents.closeDevTools();
-            } else {
-                win.webContents.openDevTools();
-            }
-        }
-    });
-
-    ipcMain.on('get-cookies', async () => {
+    ipcMain.on('get-cookies', async (event) => {
         win.webContents.send('get-cookies-success', loadCookies());
     });
 
-    ipcMain.on('logout', async () => {
+    ipcMain.on('logout', async (event) => {
         storage.delete("cookies");
         win.webContents.send('logout-success');
 
         setBilibiliRequestCookie("");
     });
 
-    ipcMain.on('start-browser-auth-server', async () => {
+    ipcMain.on('start-browser-auth-server', async (event) => {
         if (browserAuthServer === null) {
             browserAuthServer = https.createServer({
                 key: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'privkey.pem')), // 私钥
@@ -524,9 +505,9 @@ function createWindow() {
                 } else if (request.url === '/background.png') {
                     response.writeHead(200, { 'Content-Type': 'image/png' });
                     response.end(fs.readFileSync(path.join(__dirname, '..', 'img', 'NB_Music.png')));
-                } else if (request.url === '/HarmonyOS_Sans.woff2') {
-                    response.writeHead(200, { 'Content-Type': 'font/woff2' });
-                    response.end(fs.readFileSync(path.join(__dirname, '..', 'fonts', 'HarmonyOS_Sans_Medium.woff2')));
+                } else if (request.url === '/HarmonyOS_Sans.woff') {
+                    response.writeHead(200, { 'Content-Type': 'font/woff' });
+                    response.end(fs.readFileSync(path.join(__dirname, '..', 'fonts', 'HarmonyOS_Sans_Medium.woff')));
                 } else if (request.url === '/getUserInfo') {
                     axios.get('https://api.bilibili.com/x/web-interface/nav', {
                         headers: {
@@ -578,7 +559,7 @@ function createWindow() {
         }
     });
 
-    ipcMain.on('close-browser-auth-server', async () => {
+    ipcMain.on('close-browser-auth-server', async (event) => {
         if (browserAuthServer !== null) {
             browserAuthServer.close();
             browserAuthServer = null;
@@ -692,7 +673,7 @@ function setupIPC() {
     });
 
     // 处理播放控制
-    ipcMain.on('desktop-lyrics-toggle-play', () => {
+    ipcMain.on('desktop-lyrics-toggle-play', (event) => {
         if (global.mainWindow) {
             global.mainWindow.webContents.send('desktop-lyrics-control', 'toggle-play');
         }
@@ -720,7 +701,7 @@ function setupIPC() {
     });
 
     // 处理背景颜色选择
-    ipcMain.on('desktop-lyrics-bg-color', () => {
+    ipcMain.on('desktop-lyrics-bg-color', (event) => {
         if (global.mainWindow) {
             global.mainWindow.webContents.send('show-lyrics-bg-color-picker');
         }
@@ -767,7 +748,7 @@ function setupIPC() {
     });
 
     // 强制同步歌词 - 这个新增的IPC处理器可以确保在主窗口状态变化时仍能同步歌词
-    ipcMain.on('force-sync-desktop-lyrics', () => {
+    ipcMain.on('force-sync-desktop-lyrics', (event) => {
         if (global.mainWindow && desktopLyricsWindow) {
             global.mainWindow.webContents.send('request-lyrics-sync');
         }

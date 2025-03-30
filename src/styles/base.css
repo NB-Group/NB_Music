@@ -39,7 +39,6 @@ body {
   -webkit-backdrop-filter: blur(20px);
   background: var(--mica);
   position: relative;
-  transition: none;
 }
 
 /* 主题切换器容器 */

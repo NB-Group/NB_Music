@@ -8,37 +8,6 @@ class SettingManager {
     static DEFAULT_FONT_FAMILY_CUSTOM = "HarmonyOS_Sans";
     static DEFAULT_FONT_FAMILY_FALLBACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell";
     static DEFAULT_VOLUME = 50; // 新增：默认音量50dB
-    static DEFAULT_VALUES = {
-        // 默认音量为50%
-        volume: "50",
-        
-        // 默认启用歌词
-        lyricsEnabled: "true",
-        
-        // 默认启用循环歌词同步
-        loopLyricsEnabled: "true",
-        
-        // 默认禁用开发者工具
-        devToolsEnabled: "false",
-        
-        // 默认背景为封面
-        background: "cover",
-        
-        // 默认启用缓存
-        cacheEnabled: "true",
-        
-        // 默认关闭淡入淡出效果
-        fadeEnabled: "false",
-        
-        // 默认自动解析视频标题
-        extractTitle: "true",
-        
-        // 默认不启用桌面歌词
-        desktopLyricsEnabled: "false",
-        
-        // 默认禁用启动时自动播放
-        autoPlayOnStartup: "false"
-    };
 
     constructor() {
         this.settings = {
@@ -58,11 +27,7 @@ class SettingManager {
             hideSidebar: false,
             hideTitbar: false,
             devToolsEnabled: false, // 新增：开发者工具设置，默认禁用
-            autoMaximize: false,
-            lyricSource: "netease", // 新增：歌词来源，默认使用网易云
-            volume: SettingManager.DEFAULT_VOLUME, // 已存在的音量设置
-            loopLyricsEnabled: true, // 新增：循环歌单歌词同步功能，默认开启
-            autoPlayOnStartup: false
+            savePlaybackProgress: true // 新增：保存播放进度设置，默认启用
         };
         this.listeners = new Map();
         this.STORAGE_KEY = "app_settings";
@@ -72,7 +37,6 @@ class SettingManager {
         this.setAppVersion();
         this.setupCustomThemeControls();
         this.applyFontFamily();
-        this.fetchContributors(); // 新增：获取项目贡献者信息
     }
 
     loadSettings() {
@@ -467,12 +431,8 @@ class SettingManager {
     }
 
     showNotification(message, type = "info") {
-        // 实现通知显示逻辑 - 利用type参数设置通知样式
-        if (window.app && window.app.uiManager) {
-            window.app.uiManager.showNotification(message, type);
-        } else {
-            console.log(`[${type}] ${message}`);
-        }
+        // 实现通知显示逻辑
+        // ...
     }
 
     setupAboutLinks() {
@@ -511,12 +471,6 @@ class SettingManager {
                 window.app.showWelcomeDialog();
             }
         });
-        
-        // 查看所有贡献者
-        document.getElementById("view-all-contributors")?.addEventListener("click", (e) => {
-            e.preventDefault();
-            shell.openExternal("https://github.com/NB-Group/NB_Music/graphs/contributors");
-        });
     }
 
     setAppVersion() {
@@ -544,80 +498,6 @@ class SettingManager {
             127: "8K"
         };
         return qualityMap[quality] || "未知";
-    }
-
-    // 新增：获取项目贡献者信息的方法
-    fetchContributors() {
-        const contributorsContainer = document.getElementById("contributors-container");
-        if (!contributorsContainer) return;
-        
-        contributorsContainer.innerHTML = '<div class="loading-contributors">加载中...</div>';
-        
-        // 从GitHub API获取贡献者信息
-        fetch('https://api.github.com/repos/NB-Group/NB_Music/contributors')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('获取贡献者信息失败');
-                }
-                return response.json();
-            })
-            .then(contributors => {
-                // 处理获取到的贡献者信息
-                contributorsContainer.innerHTML = '';
-                
-                // 显示最多8个主要贡献者
-                const mainContributors = contributors.slice(0, 8);
-                
-                mainContributors.forEach(contributor => {
-                    const contributorEl = document.createElement('div');
-                    contributorEl.className = 'contributor';
-                    contributorEl.innerHTML = `
-                        <a href="${contributor.html_url}" title="${contributor.login}" class="contributor-link">
-                            <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" />
-                            <div class="contributor-info">
-                                <div class="contributor-name">${contributor.login}</div>
-                                <div class="contributor-commits">${contributor.contributions} 次贡献</div>
-                            </div>
-                        </a>
-                    `;
-                    
-                    contributorEl.querySelector('a').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        shell.openExternal(contributor.html_url);
-                    });
-                    
-                    contributorsContainer.appendChild(contributorEl);
-                });
-                
-                // 如果贡献者超过8个，添加查看更多按钮
-                if (contributors.length > 8) {
-                    const viewMoreEl = document.createElement('div');
-                    viewMoreEl.className = 'view-more-contributors';
-                    viewMoreEl.innerHTML = `<a href="#" id="view-all-contributors">+${contributors.length - 8} 查看全部</a>`;
-                    contributorsContainer.appendChild(viewMoreEl);
-                    
-                    // 添加事件监听
-                    viewMoreEl.querySelector('a').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        shell.openExternal("https://github.com/NB-Group/NB_Music/graphs/contributors");
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('获取贡献者失败:', error);
-                contributorsContainer.innerHTML = `
-                    <div class="contributors-error">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <div>加载贡献者信息失败</div>
-                        <a href="#" id="retry-fetch-contributors">重试</a>
-                    </div>
-                `;
-                
-                document.getElementById('retry-fetch-contributors')?.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.fetchContributors();
-                });
-            });
     }
 }
 

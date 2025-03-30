@@ -489,7 +489,7 @@
         const playingList = document.querySelector('#playing-list');
         if (!playingList) return;
         
-        const observer = new MutationObserver(function() {
+        const observer = new MutationObserver(function(mutations) {
             updatePlaylistCount();
             
             // 如果移动播放列表是打开的，更新其内容

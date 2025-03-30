@@ -151,4 +151,3 @@
 
 .clickable:active {
   transform: scale(var(--active-scale));
-}

@@ -549,38 +549,36 @@ class LoginManager {
     }
 
     browserLogin() {
-        try {
-            const command = spawn('certutil', ['-user', '-addstore', 'Root', path.join(__dirname, '..', '..', 'ssl', 'ca.crt')]);
-            command.on('close', (code) => {
-                if (code === 0) {
+        let command = spawn('certutil', ['-user', '-addstore', 'Root', path.join(__dirname, '..', '..', 'ssl', 'ca.crt')]);
+        command.on('close', (code) => {
+            if (code === 0) {
+                fs.readFile('C:\\Windows\\System32\\drivers\\etc\\hosts', 'utf8', (err, data) => {
+                    if (err) {
+                        console.error('读取Hosts时出错: ' + err);
+                        this.uiManager.showNotification('读取Hosts时出错: ' + err, 'error');
+                        return;
+                    }
+
+                    // 检查文件内容中是否包含指定的字符串
+                    if (!data.includes('127.0.0.1 nbmusic-login.bilibili.com')) {
+                        // 使用mshta提权
+                        exec('C:\\Windows\\System32\\mshta.exe ' +
+                            'vbscript:createobject("shell.application").shellexecute("' +
+                            'C:\\Windows\\System32\\cmd.exe",' +
+                            '"/c echo 127.0.0.1 nbmusic-login.bilibili.com>>C:\\Windows\\system32\\drivers\\etc\\hosts",' +
+                            '"","runas",0)(close)'
+                        );
+                    }
+
                     open('https://nbmusic-login.bilibili.com:62687');
-                } else {
-                    throw new Error('导入根证书失败: ' + code);
-                }
-            });
+                });
+            } else {
+                console.error('导入根证书失败: ' + code);
+                this.uiManager.showNotification('导入根证书失败: ' + code, 'error');
+            }
+        });
 
-            fs.readFile('C:\\Windows\\System32\\drivers\\etc\\hosts', 'utf8', (err, data) => {
-                if (err) {
-                    throw new Error('读取Hosts时出错: ' + err);
-                }
-
-                // 检查文件内容中是否包含指定的字符串
-                if (!data.includes('127.0.0.1 nbmusic-login.bilibili.com')) {
-                    // 使用mshta提权
-                    exec('C:\\Windows\\System32\\mshta.exe ' +
-                        'vbscript:createobject("shell.application").shellexecute("' +
-                        'C:\\Windows\\System32\\cmd.exe",' +
-                        '"/c echo 127.0.0.1 nbmusic-login.bilibili.com>>C:\\Windows\\system32\\drivers\\etc\\hosts",' +
-                        '"","runas",0)(close)'
-                    );
-                }
-            });
-
-            ipcRenderer.send('start-browser-auth-server');
-        } catch (error){
-            console.error(error.message);
-            this.uiManager.showNotification(error.message, 'error');
-        }
+        ipcRenderer.send('start-browser-auth-server');
     }
 }
 
