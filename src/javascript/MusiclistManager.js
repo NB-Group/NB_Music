@@ -14,7 +14,7 @@ class MusiclistManager {
 
         setTimeout(() => {
             this.loadLastPlayedPlaylist();
-        }, 0);
+        }, 100);
 
         if (this.playlists.length === 0) {
             // 创建默认歌单
@@ -29,7 +29,12 @@ class MusiclistManager {
         this.init();
     }
     loadLastPlayedPlaylist() {
-        if (this.uiManager && typeof this.uiManager.showDefaultUi === 'function') {
+        if (!this.uiManager) {
+            console.warn("uiManager未设置，跳过加载歌单");
+            return;
+        }
+        
+        if (typeof this.uiManager.showDefaultUi === 'function') {
             this.uiManager.showDefaultUi();
         }
         // 1. 加载所有歌单数据 
@@ -133,53 +138,58 @@ class MusiclistManager {
 
     init() {
         const lyricSearchTypeSelect = document.getElementById('lyricSearchType');
-        lyricSearchTypeSelect.addEventListener('change', (e) => {
-            this.lyricSearchType = e.target.value;
-        });
+        if (lyricSearchTypeSelect) {
+            lyricSearchTypeSelect.addEventListener('change', (e) => {
+                this.lyricSearchType = e.target.value;
+            });
+        }
         // 点击新建歌单按钮事件
-        this.newPlaylistBtn.addEventListener("click", () => {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.placeholder = "输入歌单名称";
-            input.className = "playlist-input";
-            input.maxLength = 30; // 限制歌单名称最大长度为30个字符
+        if (this.newPlaylistBtn) {
+            this.newPlaylistBtn.addEventListener("click", () => {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.placeholder = "输入歌单名称";
+                input.className = "playlist-input";
+                input.maxLength = 30; // 限制歌单名称最大长度为30个字符
 
-            input.addEventListener("click", (e) => {
-                e.stopPropagation();
-            });
+                input.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                });
 
-            this.newPlaylistBtn.replaceWith(input);
-            input.focus();
+                this.newPlaylistBtn.replaceWith(input);
+                input.focus();
 
-            const handleNewPlaylist = () => {
-                const name = input.value.trim();
-                if (name) {
-                    // 检查歌单名是否已存在
-                    if (this.playlists.some(p => p.name === name)) {
-                        alert("歌单名称已存在！");
-                        return;
+                const handleNewPlaylist = () => {
+                    const name = input.value.trim();
+                    if (name) {
+                        // 检查歌单名是否已存在
+                        if (this.playlists.some(p => p.name === name)) {
+                            alert("歌单名称已存在！");
+                            return;
+                        }
+                        this.playlists.push({
+                            id: this.generateUUID(),
+                            name: name,
+                            songs: []
+                        });
+                        this.savePlaylists();
+                        this.renderPlaylistList();
                     }
-                    this.playlists.push({
-                        id: this.generateUUID(),
-                        name: name,
-                        songs: []
-                    });
-                    this.savePlaylists();
-                    this.renderPlaylistList();
-                }
-                input.replaceWith(this.newPlaylistBtn);
-            };
+                    input.replaceWith(this.newPlaylistBtn);
+                };
 
-            input.addEventListener("blur", handleNewPlaylist);
-            input.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") {
-                    input.blur();
-                }
+                input.addEventListener("blur", handleNewPlaylist);
+                input.addEventListener("keypress", (e) => {
+                    if (e.key === "Enter") {
+                        input.blur();
+                    }
+                });
             });
-        });
+        }
 
         this.renderPlaylistList();
         this.renderSongList();
+        
         const importBtn = document.getElementById('importPlaylist');
         const importDialog = document.getElementById('importDialog');
         const cancelBtn = document.getElementById('cancelImport');
@@ -188,106 +198,117 @@ class MusiclistManager {
         const linkLabel = document.getElementById('linkLabel');
         const formatExample = document.getElementById('formatExample');
 
-        // 添加获取自定义下拉框值的辅助函数
-        const getCustomSelectValue = (selectId) => {
-            const customSelect = document.getElementById(selectId);
-            if (!customSelect) return null;
-            const selectedItem = customSelect.querySelector('.select-item.selected');
-            return selectedItem ? selectedItem.getAttribute('data-value') : null;
-        };
+        // 所有元素都存在时才添加事件监听
+        if (importBtn && importDialog && cancelBtn && confirmBtn && favLinkInput && linkLabel && formatExample) {
+            // 添加获取自定义下拉框值的辅助函数
+            const getCustomSelectValue = (selectId) => {
+                const customSelect = document.getElementById(selectId);
+                if (!customSelect) return null;
+                const selectedItem = customSelect.querySelector('.select-item.selected');
+                return selectedItem ? selectedItem.getAttribute('data-value') : null;
+            };
 
-        // 监听自定义下拉框点击，在事件委托由其他代码处理，这里只处理显示相关内容的更新
-        document.addEventListener('click', (e) => {
-            // 如果是选择了importType的选项
-            if (e.target.classList.contains('select-item') && 
-                e.target.closest('#importType')) {
-                
-                // 更新提示文本基于选中的值
-                const importType = e.target.getAttribute('data-value');
-                updateImportTypeUI(importType);
-            }
-        });
+            // 监听自定义下拉框点击，在事件委托由其他代码处理，这里只处理显示相关内容的更新
+            document.addEventListener('click', (e) => {
+                // 如果是选择了importType的选项
+                if (e.target.classList.contains('select-item') && 
+                    e.target.closest('#importType')) {
+                    
+                    // 更新提示文本基于选中的值
+                    const importType = e.target.getAttribute('data-value');
+                    updateImportTypeUI(importType);
+                }
+            });
 
-        // 更新导入类型提示的函数
-        const updateImportTypeUI = (importType) => {
-            switch (importType) {
-                case 'fav':
-                    linkLabel.textContent = '收藏夹链接或ID:';
-                    favLinkInput.placeholder = '输入收藏夹链接或ID';
-                    formatExample.textContent = '收藏夹ID或链接(fid=xxx)';
-                    break;
-                case 'season':
-                    linkLabel.textContent = '合集链接或ID:';
-                    favLinkInput.placeholder = '输入合集链接或ID';
-                    formatExample.textContent = '合集链接(space.bilibili.com/xxx/lists/数字)或ID';
-                    break;
-            }
-        };
-
-        // 初始化时设置默认导入类型UI
-        setTimeout(() => {
-            const initialImportType = getCustomSelectValue('importType') || 'fav';
-            updateImportTypeUI(initialImportType);
-        }, 100);
-
-        importBtn.addEventListener('click', () => {
-            importDialog.classList.remove('hide');
-            favLinkInput.focus();
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            importDialog.classList.add('hide');
-            favLinkInput.value = '';
-        });
-
-        confirmBtn.addEventListener('click', async () => {
-            const input = favLinkInput.value.trim();
-            const importType = getCustomSelectValue('importType') || 'fav';
-            
-            if (!input) {
-                this.uiManager.showNotification('请输入链接或ID', 'error');
-                return;
-            }
-
-            try {
-                confirmBtn.disabled = true;
-                confirmBtn.textContent = '导入中...';
-
-                let result;
+            // 更新导入类型提示的函数
+            const updateImportTypeUI = (importType) => {
                 switch (importType) {
                     case 'fav':
-                        result = await this.importFromBiliFav(input);
+                        linkLabel.textContent = '收藏夹链接或ID:';
+                        favLinkInput.placeholder = '输入收藏夹链接或ID';
+                        formatExample.textContent = '收藏夹ID或链接(fid=xxx)';
                         break;
                     case 'season':
-                        result = await this.importFromBiliSeason(input);
+                        linkLabel.textContent = '合集链接或ID:';
+                        favLinkInput.placeholder = '输入合集链接或ID';
+                        formatExample.textContent = '合集链接(space.bilibili.com/xxx/lists/数字)或ID';
                         break;
-                    default:
-                        throw new Error('未知的导入类型');
                 }
+            };
 
-                if (result.success) {
-                    this.uiManager.showNotification(result.message, 'success');
-                    importDialog.classList.add('hide');
-                    favLinkInput.value = '';
-                    this.renderPlaylistList();
-                } else {
-                    this.uiManager.showNotification(result.message, 'error');
-                }
-            } catch (error) {
-                this.uiManager.showNotification('导入失败: ' + error.message, 'error');
-            } finally {
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = '导入';
-            }
-        });
+            // 初始化时设置默认导入类型UI
+            setTimeout(() => {
+                const initialImportType = getCustomSelectValue('importType') || 'fav';
+                updateImportTypeUI(initialImportType);
+            }, 100);
 
-        // 按ESC关闭对话框
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !importDialog.classList.contains('hide')) {
+            importBtn.addEventListener('click', () => {
+                importDialog.classList.remove('hide');
+                favLinkInput.focus();
+            });
+
+            cancelBtn.addEventListener('click', () => {
                 importDialog.classList.add('hide');
                 favLinkInput.value = '';
-            }
-        });
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                const input = favLinkInput.value.trim();
+                const importType = getCustomSelectValue('importType') || 'fav';
+                
+                if (!input) {
+                    if (this.uiManager) {
+                        this.uiManager.showNotification('请输入链接或ID', 'error');
+                    }
+                    return;
+                }
+
+                try {
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = '导入中...';
+
+                    let result;
+                    switch (importType) {
+                        case 'fav':
+                            result = await this.importFromBiliFav(input);
+                            break;
+                        case 'season':
+                            result = await this.importFromBiliSeason(input);
+                            break;
+                        default:
+                            throw new Error('未知的导入类型');
+                    }
+
+                    if (result.success) {
+                        if (this.uiManager) {
+                            this.uiManager.showNotification(result.message, 'success');
+                        }
+                        importDialog.classList.add('hide');
+                        favLinkInput.value = '';
+                        this.renderPlaylistList();
+                    } else {
+                        if (this.uiManager) {
+                            this.uiManager.showNotification(result.message, 'error');
+                        }
+                    }
+                } catch (error) {
+                    if (this.uiManager) {
+                        this.uiManager.showNotification('导入失败: ' + error.message, 'error');
+                    }
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = '导入';
+                }
+            });
+
+            // 按ESC关闭对话框
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !importDialog.classList.contains('hide')) {
+                    importDialog.classList.add('hide');
+                    favLinkInput.value = '';
+                }
+            });
+        }
     }
 
     savePlaylists() {

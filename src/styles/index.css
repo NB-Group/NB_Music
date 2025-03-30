@@ -30,3 +30,180 @@
 
 /* 导入第三方库 */
 @import '../../node_modules/bootstrap-icons/font/bootstrap-icons.css';
+
+/* 添加第三方解析相关样式 */
+/* 下拉菜单样式 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  padding: 6px 12px;
+  background-color: var(--rgba-2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 120px;
+  text-align: left;
+  position: relative;
+  color: var(--rgba-9);
+}
+
+.dropdown-toggle::after {
+  content: '';
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+  border-top: 4px solid var(--rgba-6);
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 10rem;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  color: var(--rgba-9);
+  text-align: left;
+  list-style: none;
+  background-color: var(--rgba-2);
+  background-clip: padding-box;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+  max-height: 200px;
+  overflow-y: auto;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.25rem 1.5rem;
+  clear: both;
+  font-weight: 400;
+  color: var(--rgba-9);
+  text-align: inherit;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  color: var(--rgba-10);
+  text-decoration: none;
+  background-color: var(--rgba-2);
+}
+
+/* 免责声明对话框样式 */
+.disclaimer-dialog {
+  max-width: 700px;
+  max-height: 80vh;
+}
+
+.disclaimer-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px);
+}
+
+.disclaimer-content h3 {
+  color: var(--primary-text-color);
+  margin-bottom: 20px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.disclaimer-text {
+  background-color: var(--bg-color-2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--warning-color);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.disclaimer-text p {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.disclaimer-text p strong {
+  color: var(--primary-color);
+}
+
+.disclaimer-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.disclaimer-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--warning-color);
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: var(--rgba-warning);
+  width: 100%;
+}
+
+.disclaimer-warning i {
+  font-size: 20px;
+}
+
+.timer-container {
+  text-align: center;
+  font-weight: bold;
+  color: var(--warning-color);
+  margin: 10px 0;
+}
+
+.disclaimer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.disclaimer-buttons button {
+  min-width: 150px;
+}
+
+/* 按钮禁用状态样式 */
+.btn.btn-primary:disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* 第三方播放器iframe样式 */
+#thirdPartyPlayerFrame {
+  border: none;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}

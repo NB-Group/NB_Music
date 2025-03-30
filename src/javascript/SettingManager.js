@@ -29,7 +29,88 @@ class SettingManager {
             devToolsEnabled: false, // 新增：开发者工具设置，默认禁用
             autoMaximize: false,
             lyricSource: "netease", // 新增：歌词来源，默认使用网易云
-            volume: SettingManager.DEFAULT_VOLUME // 已存在的音量设置
+            volume: SettingManager.DEFAULT_VOLUME, // 已存在的音量设置
+            videoParseMethod: "official", // 新增：视频解析方式，默认官方解析
+            hasAcceptedParseDisclaimer: false, // 新增：用户是否已接受免责声明
+            thirdPartyParseWarned: false, // 新增：是否已经显示过第三方解析风险警告
+            thirdPartyInterfaces: [
+                {
+                    name: "1080API(优选)",
+                    url: "https://www.1080kan.cc/jiexi/?url=",
+                    mobile: 1
+                },
+                {
+                    name: "虾米",
+                    url: "https://jx.xmflv.com/?url=",
+                    mobile: 1
+                },
+                {
+                    name: "夜幕",
+                    url: "https://www.yemu.xyz/?url=", 
+                    mobile: 0
+                },
+                {
+                    name: "BL",
+                    url: "https://vip.bljiex.com/?v=",
+                    mobile: 0
+                },
+                {
+                    name: "爱豆",
+                    url: "https://jx.aidouer.net/?url=",
+                    mobile: 1
+                },
+                {
+                    name: "云析",
+                    url: "https://jx.yparse.com/index.php?url=",
+                    mobile: 0
+                },
+                {
+                    name: "诺讯",
+                    url: "https://www.nxflv.com/?url=",
+                    mobile: 0
+                },
+                {
+                    name: "M3U8.TV",
+                    url: "https://jx.m3u8.tv/jiexi/?url=",
+                    mobile: 0
+                },
+                {
+                    name: "人人迷",
+                    url: "https://jx.blbo.cc:4433/?url=",
+                    mobile: 1
+                },
+                {
+                    name: "思古解析",
+                    url: "https://jsap.attakids.com/?url=",
+                    mobile: 1
+                },
+                {
+                    name: "OK解析",
+                    url: "https://okjx.cc/?url=",
+                    mobile: 0
+                },
+                {
+                    name: "618G",
+                    url: "https://jx.618g.com/?url=",
+                    mobile: 0
+                },
+                {
+                    name: "RDHK",
+                    url: "https://jx.rdhk.net/?v=",
+                    mobile: 1
+                },
+                {
+                    name: "盘古",
+                    url: "https://www.pangujiexi.cc/jiexi.php?url=",
+                    mobile: 0
+                },
+                {
+                    name: "SMYS",
+                    url: "https://jx.smys8.cn/index.php?url=",
+                    mobile: 0
+                }
+            ],
+            lastUsedInterface: 0 // 新增：上次使用的接口索引
         };
         this.listeners = new Map();
         this.STORAGE_KEY = "app_settings";
@@ -433,8 +514,12 @@ class SettingManager {
     }
 
     showNotification(message, type = "info") {
-        // 实现通知显示逻辑
-        // ...
+        // 实现通知显示逻辑，使用type参数
+        if (window.app && window.app.uiManager) {
+            window.app.uiManager.showNotification(message, type);
+        } else {
+            console.log(`[${type}] ${message}`);
+        }
     }
 
     setupAboutLinks() {

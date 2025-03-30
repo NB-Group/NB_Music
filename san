@@ -1,0 +1,281 @@
+// ==UserScript==
+// @name         简化版 - 第三方 VIP 视频解析示例
+// @namespace    simplified-vip-parser-example
+// @version      0.5
+// @description  演示使用第三方接口尝试解析 VIP 视频的核心逻辑 (简化版)
+// @author       AI & 参考源脚本
+// @match        *://*.youku.com/*
+// @match        *://*.iqiyi.com/*
+// @match        *://*.iq.com/*
+// @match        *://*.le.com/*
+// @match        *://v.qq.com/*
+// @match        *://*.mgtv.com/*
+// @match        *://*.bilibili.com/*
+// @match        *://tv.sohu.com/*
+// @match        *://film.sohu.com/*
+// @match        *://*.1905.com/*
+// @match        *://*.pptv.com/*
+// @exclude      *://*.bilibili.com/appeal*
+// @grant        GM_addStyle
+// @grant        GM_registerMenuCommand
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_openInTab
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() \{
+    'use strict';
+
+    // --- 配置 ---
+    const SCRIPT_ID = 'simplifiedVipParser';
+    const PARSE_EXTERNALLY_KEY = 'simplifiedVipParser_parseExternally';
+
+    // 获取设置，默认为 true (站外解析)
+    let parseExternally = GM_getValue(PARSE_EXTERNALLY_KEY, true);
+
+    // --- 第三方解析接口列表 (示例，可能失效) ---
+    // 这些是从你提供的脚本中挑选的几个例子
+    const parsingInterfaces = [
+        { name: "纯净1", url: "https://im1907.top/?jx=" \},
+        \{ name: "B站1", url: "https://jx.jsonplayer.com/player/?url=" \},
+        \{ name: "听乐", url: "https://jx.dj6u.com/?url=" \},
+        \{ name: "盘古", url: "https://www.pangujiexi.cc/jiexi.php?url=" \},
+        \{ name: "虾米", url: "https://jx.xmflv.com/?url=" \},
+        // --- 你可以自己添加更多或修改这里的接口 ---
+        // \{ name: "自定义线路名", url: "https://your.custom.interface/?url=" \},
+    ];
+
+    // --- 样式 ---
+    GM_addStyle(`
+        #$\{SCRIPT_ID\}_button \{
+            position: fixed;
+            top: 200px;
+            left: 10px;
+            z-index: 99999;
+            background-color: #f24443;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        \}
+        #$\{SCRIPT_ID\}_button:hover \{
+            opacity: 1;
+        \}
+        #$\{SCRIPT_ID\}_popup \{
+            position: fixed;
+            top: 240px; /* Button height + spacing */
+            left: 10px;
+            z-index: 99998;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            padding: 10px;
+            display: none; /* Initially hidden */
+            max-height: 300px;
+            overflow-y: auto;
+        \}
+        #$\{SCRIPT_ID\}_popup ul \{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        \}
+        #$\{SCRIPT_ID\}_popup li \{
+            padding: 6px 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            color: #333;
+        \}
+         #$\{SCRIPT_ID\}_popup li:last-child \{
+             border-bottom: none;
+         \}
+        #$\{SCRIPT_ID\}_popup li:hover \{
+            background-color: #f0f0f0;
+            color: #f24443;
+        \}
+        #$\{SCRIPT_ID\}_iframe_container \{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100000; /* Above everything */
+            background-color: rgba(0, 0, 0, 0.7); /* Dim background */
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        \}
+         #$\{SCRIPT_ID\}_iframe_wrapper \{
+             position: relative;
+             width: 90%;
+             height: 90%;
+             background-color: black;
+             border-radius: 5px;
+             overflow: hidden; /* Clip iframe corners */
+         \}
+        #$\{SCRIPT_ID\}_iframe \{
+            width: 100%;
+            height: 100%;
+            border: none;
+        \}
+         #$\{SCRIPT_ID\}_iframe_close \{
+             position: absolute;
+             top: -5px;
+             right: -5px;
+             width: 28px;
+             height: 28px;
+             background-color: white;
+             color: #555;
+             border: 1px solid #ccc;
+             border-radius: 50%;
+             text-align: center;
+             line-height: 26px;
+             font-size: 20px;
+             font-weight: bold;
+             cursor: pointer;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+         \}
+         #$\{SCRIPT_ID\}_iframe_close:hover \{
+             background-color: #f0f0f0;
+             color: black;
+         \}
+    `);
+
+    // --- 创建 UI 元素 ---
+    function createUI() \{
+        // 检查是否已创建
+        if (document.getElementById(`${SCRIPT_ID\}_button`)) \{
+            return;
+        \}
+
+        // 1. 创建悬浮按钮
+        const button = document.createElement('button');
+        button.id = `$\{SCRIPT_ID\}_button`;
+        button.textContent = 'VIP 解析';
+        button.title = '点击选择解析线路';
+        document.body.appendChild(button);
+
+        // 2. 创建线路选择弹出框 (初始隐藏)
+        const popup = document.createElement('div');
+        popup.id = `$\{SCRIPT_ID\}_popup`;
+        const ul = document.createElement('ul');
+        parsingInterfaces.forEach(item => \{
+            const li = document.createElement('li');
+            li.textContent = item.name;
+            li.dataset.url = item.url; // 将接口 URL 存储在 data 属性中
+            li.title = `使用 ${item.name\} 解析`;
+            li.addEventListener('click', handleInterfaceClick);
+            ul.appendChild(li);
+        });
+        popup.appendChild(ul);
+        document.body.appendChild(popup);
+
+        // 3. 创建用于站内解析的 iframe 容器 (初始隐藏)
+        const iframeContainer = document.createElement('div');
+        iframeContainer.id = `$\{SCRIPT_ID\}_iframe_container`;
+        iframeContainer.innerHTML = `
+            <div id="$\{SCRIPT_ID\}_iframe_wrapper">
+                <iframe id="$\{SCRIPT_ID\}_iframe" allowfullscreen="true" sandbox="allow-forms allow-scripts allow-same-origin"></iframe>
+                <div id="$\{SCRIPT_ID\}_iframe_close" title="关闭播放器">&times;</div>
+            </div>
+        `;
+        document.body.appendChild(iframeContainer);
+
+        // --- 事件监听 ---
+        // 点击按钮显示/隐藏线路列表
+        button.addEventListener('click', (e) => \{
+            e.stopPropagation(); // 阻止事件冒泡到 document
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+        \});
+
+        // 点击页面其他地方隐藏线路列表
+        document.addEventListener('click', (e) => \{
+            if (!popup.contains(e.target) && e.target !== button) {
+                popup.style.display = 'none';
+            \}
+        });
+
+        // 点击关闭按钮隐藏 iframe 容器
+        document.getElementById(`$\{SCRIPT_ID\}_iframe_close`).addEventListener('click', () => \{
+            const container = document.getElementById(`${SCRIPT_ID\}_iframe_container`);
+            const iframe = document.getElementById(`$\{SCRIPT_ID\}_iframe`);
+            iframe.src = 'about:blank'; // 清空 iframe 内容，停止播放
+            container.style.display = 'none';
+        });
+    }
+
+    // --- 处理线路点击 ---
+    function handleInterfaceClick(event) \{
+        const interfaceUrl = event.target.dataset.url;
+        const currentVideoUrl = window.location.href;
+
+        if (!interfaceUrl) {
+            console.error('解析接口 URL 未找到!');
+            alert('选择的解析接口无效！');
+            return;
+        \}
+
+        // 隐藏线路列表
+        const popup = document.getElementById(`$\{SCRIPT_ID\}_popup`);
+        if (popup) popup.style.display = 'none';
+
+        // **重要：对当前视频 URL 进行编码，防止参数被截断或解析错误**
+        const encodedVideoUrl = encodeURIComponent(currentVideoUrl);
+        const finalUrl = interfaceUrl + encodedVideoUrl;
+
+        console.log(`尝试使用接口: $\{event.target.textContent\}`);
+        console.log(`解析目标 URL: $\{currentVideoUrl\}`);
+        console.log(`最终请求 URL: $\{finalUrl\}`);
+
+        if (parseExternally) \{
+            // 方式一：站外解析 (新标签页打开)
+            console.log('执行站外解析...');
+            // GM_openInTab(finalUrl, { active: true \}); // 使用 GM 功能打开
+            window.open(finalUrl, '_blank'); // 备用，如果 GM_openInTab 有问题
+        } else \{
+            // 方式二：站内解析 (尝试使用 iframe)
+            console.log('执行站内解析 (使用 iframe)...');
+            const iframeContainer = document.getElementById(`${SCRIPT_ID\}_iframe_container`);
+            const iframe = document.getElementById(`$\{SCRIPT_ID\}_iframe`);
+            if (iframe && iframeContainer) \{
+                iframe.src = finalUrl;
+                iframeContainer.style.display = 'flex'; // 显示 iframe 容器
+            \} else \{
+                console.error('站内解析 iframe 未找到!');
+                alert('站内解析所需的播放器组件未找到，请尝试站外解析。');
+                // 出错时也尝试站外打开
+                 window.open(finalUrl, '_blank');
+            \}
+        }
+    }
+
+    // --- 菜单命令 ---
+    function registerMenu() \{
+        const menuText = parseExternally ? '▶️ 当前模式: 站外解析 (点击切换为站内)' : '📺 当前模式: 站内解析 (点击切换为站外)';
+        GM_registerMenuCommand(menuText, () => {
+            parseExternally = !parseExternally;
+            GM_setValue(PARSE_EXTERNALLY_KEY, parseExternally);
+            alert(`解析模式已切换为: ${parseExternally ? '站外解析 (新标签页)' : '站内解析 (尝试嵌入)'\}\n刷新页面生效设置显示。`);
+            // 重新注册菜单以更新文本 (虽然在此次点击后不立即显示，但下次打开菜单时会更新)
+            // 可以考虑移除旧命令再添加，但 GM API 可能不支持动态移除，简单做法是下次运行时文本就对了
+        });
+    }
+
+    // --- 初始化 ---
+    // 延迟一点执行，确保页面基本加载
+    setTimeout(() => \{
+        createUI();
+        registerMenu();
+        console.log(`简化版 VIP 解析脚本已加载，当前模式: ${parseExternally ? '站外' : '站内'\}`);
+    }, 1500); // 1.5 秒延迟，可根据需要调整
+
+})();

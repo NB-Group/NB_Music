@@ -33,10 +33,13 @@ class App {
 
     initializecomponents() {
         try {
-            // 1. 创建基础组件
+            // 1. 首先创建不依赖其他组件的基本组件
             this.settingManager = new SettingManager();
-            this.audioPlayer = new AudioPlayer(null); // 暂时传入null
+            this.audioPlayer = new AudioPlayer();
+            
+            // 修复：创建LyricsPlayer时正确传入参数
             this.lyricsPlayer = new LyricsPlayer("暂无歌词，尽情欣赏音乐", this.audioPlayer.audio, this.settingManager);
+            
             this.volumeControl = new VolumeControlManager(this.settingManager, this.audioPlayer);
 
             // 2. 创建其他必要组件
@@ -54,7 +57,6 @@ class App {
             // 4. 创建其他依赖UI管理器的组件
             this.favoriteManager = new FavoriteManager(this.playlistManager, this.uiManager);
             this.musicSearcher = new MusicSearcher();
-            this.musiclistManager = new MusiclistManager(this.playlistManager);
             this.cacheManager = new CacheManager();
             this.loginManager = new LoginManager(this.uiManager);
             this.updateManager = new UpdateManager();
@@ -75,12 +77,16 @@ class App {
             this.musicSearcher.favoriteManager = this.favoriteManager;
             this.playlistManager.settingManager = this.settingManager;
             this.playlistManager.musicSearcher = this.musicSearcher;
-            this.playlistManager.musiclistManager = this.musiclistManager;
             this.musicSearcher.settingManager = this.settingManager;
             this.playlistManager.cacheManager = this.cacheManager;
+            
+            // 确保所有依赖设置好后再创建MusiclistManager
+            this.musiclistManager = new MusiclistManager(this.playlistManager);
             this.musiclistManager.uiManager = this.uiManager;
             this.musiclistManager.musicSearcher = this.musicSearcher;
             this.musiclistManager.audioPlayer = this.audioPlayer;
+            this.playlistManager.musiclistManager = this.musiclistManager;
+            this.videoPlayerManager.settingManager = this.settingManager;
 
             // 6. 暴露全局引用
             window.app = this;
