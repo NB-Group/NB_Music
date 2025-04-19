@@ -16,7 +16,7 @@
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 24px;
-  height: calc(100% - 60px);
+  height: calc(100% - 20px);
 }
 
 /* 歌单列表和歌曲部分共享样式 */
@@ -341,4 +341,46 @@ li.active {
 
 #lovelist>.song {
   border: 1px solid var(--border-1);
+}
+/* 修改空状态提示选择器 */
+#lovelist:not(:has(li)) .empty-state {
+  display: flex;
+}
+
+/* 空状态提示 */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  margin-top: 28%;
+  opacity: 0.7;
+}
+
+.empty-state i {
+  font-size: 4em;
+  margin-bottom: 15px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.empty-state p {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.empty-state .tip {
+  font-size: 0.9em;
+  opacity: 0.6;
+  max-width: 300px;
+}
+
+#lovelist:empty .empty-state {
+  display: flex;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }

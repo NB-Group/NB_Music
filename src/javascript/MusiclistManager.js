@@ -11,6 +11,7 @@ class MusiclistManager {
      * @param {import("./LoginManager.js")} loginManager
      */
     constructor(playlistManager, musicSearcher, cacheManager, loginManager) {
+        this.isUpdating = false;
         this.playlistManager = playlistManager;
         this.musicSearcher = musicSearcher;
         this.cacheManager = cacheManager;
@@ -202,6 +203,9 @@ class MusiclistManager {
         const lyricSearchTypeSelect = document.getElementById("lyricSearchType");
         lyricSearchTypeSelect.addEventListener("change", (e) => {
             this.lyricSearchType = e.target.value;
+        });
+        document.getElementById('autoUpdateBtn').addEventListener('click', () => {
+            this.updateBiliFav(this.activePlaylistIndex);
         });
         // 点击新建歌单按钮事件
         this.newPlaylistBtn.addEventListener("click", () => {
@@ -830,7 +834,12 @@ class MusiclistManager {
             this.playlists.push({
                 id: this.generateUUID(),
                 name: playlistTitle,
-                songs: []
+                songs: [],
+                meta: { 
+                    mediaId: favId,
+                    type: 'bilibili',
+                    total: favInfo.media_count
+                }
             });
 
             // 2. 收集所有要添加的歌曲信息
@@ -910,6 +919,231 @@ class MusiclistManager {
             };
         }
     }
+    async updateBiliFav(playlistIndex) {
+        const playlist = this.playlists[playlistIndex];
+        let updateNotification = null;
+        
+        // 新增状态检查防止重复点击
+        if (this.isUpdating) {
+            this.uiManager.showNotification('更新正在进行中，请稍后再试', 'warning');
+            return;
+        }
+        
+        try {
+            this.isUpdating = true; // 设置更新状态
+            // 增强类型验证逻辑
+            const { mediaId, seasonId, type } = playlist.meta || {};
+
+            // 根据不同类型选择更新方式
+            if (type === 'bilibili-season' && seasonId) {
+                return await this.updateBiliSeason(playlistIndex);
+            }
+
+            // 原有收藏夹更新逻辑
+            if (!mediaId) {
+                throw new Error('此歌单未关联B站收藏夹,请重新添加收藏夹');
+            }
+
+            // 修改API请求使用v3接口
+            const favResponse = await axios.get(
+                `https://api.bilibili.com/x/v3/fav/folder/info?media_id=${mediaId}`
+            );
+
+            const favInfo = favResponse.data.data;
+            const totalCount = favInfo.media_count;
+            const existingBVids = new Set(playlist.songs.map(song => song.bvid));
+
+            // 设置进度通知
+            updateNotification = this.uiManager.showNotification(
+                `正在检查更新 (0/${totalCount})`,
+                'info',
+                { showProgress: true, progress: 0 }
+            );
+
+            let newSongs = [];
+            const pageSize = 20;
+            const totalPages = Math.ceil(totalCount / pageSize);
+
+            // 遍历所有页面
+            for (let page = 1; page <= totalPages; page++) {
+                const res = await axios.get(
+                    `https://api.bilibili.com/x/v3/fav/resource/list?media_id=${mediaId}&pn=${page}&ps=${pageSize}`
+                );
+
+                if (res.data.code === 0) {
+                    const medias = res.data.data.medias || [];
+
+                    // 过滤已存在的视频
+                    const filtered = medias.filter(media =>
+                        !existingBVids.has(media.bvid) && media.attr !== 1
+                    );
+
+                    // 转换格式并添加到新歌曲列表
+                    newSongs.push(...await Promise.all(filtered.map(async media => ({
+                        title: media.title,
+                        artist: media.upper.name,
+                        bvid: media.bvid,
+                        duration: media.duration,
+                        poster: media.cover,
+                        meta: { mediaId } // 保存收藏夹ID用于后续更新
+                    }))));
+
+                    // 更新进度
+                    const processed = page * pageSize;
+                    const progress = Math.min(processed / totalCount * 100, 100);
+                    const progressBar = updateNotification.querySelector('.notification-progress-inner'); // 修正选择器
+                    const progressText = updateNotification.querySelector('.notification-message');
+
+                    if (progressText && progressBar) { // 添加空值检查
+                        progressText.textContent =
+                            `正在检查更新 (${Math.min(processed, totalCount)}/${totalCount})`;
+                        progressBar.style.width = `${progress}%`;
+                    }
+                }
+            }
+
+            // 应用更新
+            if (newSongs.length > 0) {
+                // 处理新增歌曲的歌词
+                const newSongsWithLyrics = await this.processSongsLyrics(newSongs); // 新增歌词处理
+
+                playlist.songs = [...newSongsWithLyrics, ...playlist.songs]; // 使用带歌词的新数据
+                this.savePlaylists();
+                this.uiManager.showNotification(`发现${newSongs.length}首新歌曲`, 'success');
+
+                // 强制刷新歌单列表并保持激活状态
+                this.renderPlaylistList();
+                this.renderSongList();
+
+                // 高亮更新后的歌单条目
+                const updatedElement = document.querySelector(`li[data-id="${playlist.id}"]`);
+                if (updatedElement) {
+                    updatedElement.classList.add('active');
+                    updatedElement.click();
+                }
+            } else {
+                this.uiManager.showNotification('当前歌单已是最新', 'info');
+            }
+        } catch (error) {
+            this.uiManager.showNotification(`更新失败: ${error.message}`, 'error');
+        } finally {
+            this.isUpdating = false; // 重置更新状态
+            if (updateNotification) {  // 添加安全判断
+                updateNotification.remove();
+            }
+        }
+    }
+
+    async updateBiliSeason(playlistIndex) {
+        const playlist = this.playlists[playlistIndex];
+        let updateNotification = null;
+        try {
+            const { seasonId, mid } = playlist.meta || {};
+            if (!seasonId || !mid) {
+                throw new Error('此歌单未关联B站合集或信息不完整');
+            }
+
+            // 获取合集信息
+            const seasonResponse = await axios.get(
+                `https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100`
+            );
+
+            if (seasonResponse.data.code !== 0) {
+                throw new Error('获取合集信息失败: ' + seasonResponse.data.message);
+            }
+
+            const videos = seasonResponse.data.data.archives;
+            const totalCount = videos.length;
+            const existingBVids = new Set(playlist.songs.map(song => song.bvid));
+
+            // 获取合集名称
+            const seasonName = playlist.name.replace(/\([^)]*\)$/, '').trim();
+
+            // 设置进度通知
+            updateNotification = this.uiManager.showNotification(
+                `正在检查更新 (0/${totalCount})`,
+                'info',
+                { showProgress: true, progress: 0 }
+            );
+
+            let newSongs = [];
+            let processedCount = 0;
+
+            // 处理每个视频
+            for (const video of videos) {
+                try {
+                    // 跳过已存在的视频
+                    if (existingBVids.has(video.bvid)) {
+                        processedCount++;
+                        continue;
+                    }
+
+                    // 获取视频详情以获取CID
+                    let cid = video.cid;
+                    if (!cid) {
+                        const videoDetailResponse = await axios.get(
+                            `https://api.bilibili.com/x/web-interface/view?bvid=${video.bvid}`
+                        );
+                        if (videoDetailResponse.data.code === 0) {
+                            cid = videoDetailResponse.data.data.cid;
+                        }
+                    }
+
+                    newSongs.push({
+                        title: video.title,
+                        artist: seasonName,
+                        bvid: video.bvid,
+                        cid: cid,
+                        duration: video.duration,
+                        poster: video.pic,
+                        meta: { seasonId, mid }
+                    });
+
+                    // 更新进度
+                    processedCount++;
+                    const progress = (processedCount / totalCount) * 100;
+                    updateNotification.querySelector(".notification-message").textContent = 
+                        `正在检查更新 (${processedCount}/${totalCount})`;
+                    updateNotification.querySelector(".notification-progress-inner").style.width = 
+                        `${progress}%`;
+
+                } catch (error) {
+                    console.warn(`处理视频 ${video.bvid} 失败:`, error);
+                    continue;
+                }
+            }
+
+            // 应用更新
+            if (newSongs.length > 0) {
+                // 处理新增歌曲的歌词
+                const newSongsWithLyrics = await this.processSongsLyrics(newSongs);
+
+                playlist.songs = [...newSongsWithLyrics, ...playlist.songs];
+                this.savePlaylists();
+                this.uiManager.showNotification(`发现${newSongs.length}首新歌曲`, 'success');
+
+                // 强制刷新歌单列表并保持激活状态
+                this.renderPlaylistList();
+                this.renderSongList();
+
+                // 高亮更新后的歌单条目
+                const updatedElement = document.querySelector(`li[data-id="${playlist.id}"]`);
+                if (updatedElement) {
+                    updatedElement.classList.add('active');
+                    updatedElement.click();
+                }
+            } else {
+                this.uiManager.showNotification('当前歌单已是最新', 'info');
+            }
+        } catch (error) {
+            this.uiManager.showNotification(`更新失败: ${error.message}`, 'error');
+        } finally {
+            if (updateNotification) {
+                updateNotification.remove();
+            }
+        }
+    }
+
     async showLyricSearchDialog(song) {
         return new Promise((resolve) => {
             const dialog = document.getElementById("lyricSearchDialog");
@@ -1032,7 +1266,13 @@ class MusiclistManager {
             this.playlists.push({
                 id: this.generateUUID(),
                 name: playlistTitle,
-                songs: []
+                songs: [],
+                meta: {
+                    seasonId: seasonId,
+                    mid: mid,
+                    type: 'bilibili-season',
+                    total: totalCount
+                }
             });
 
             // 收集所有要添加的歌曲信息

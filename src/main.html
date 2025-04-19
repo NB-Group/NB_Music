@@ -190,7 +190,8 @@
         <button class="close-btn" id="closeVideoDialog"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="equalizer-container">
-        <h3>均衡器</h3>
+        <h3 style="float: left; margin-right: 80%;">均衡器</h3>
+        <button class="reset-btn"><i class="bi bi-arrow-counterclockwise"></i>重置</button>
         <div class="equalizer">
           <div class="equalizer-item">
             <input type="range" id="equalizer-1" min="-12" max="12" step="any" class="slider vertical" data-adjust="100" />
@@ -469,11 +470,17 @@
         <div id="lyrics-container">无歌词</div>
       </div>
       <div class="love-list hide">
-        <div class="title">收藏</div>
-        <list id="lovelist" class="list"> </list>
+        <!-- <div class="title">收藏</div> -->
+        <list id="lovelist" class="list">
+          <div class="empty-state fadein">
+            <i class="bi bi-music-note-beamed"></i>
+            <p>还没有收藏的音乐哦</p>
+            <span class="tip">小贴士：侧边栏歌曲点击❤️图标即可收藏歌曲</span>
+          </div>
+        </list>
       </div>
       <div class="music-list hide">
-        <div class="title">歌单</div>
+        <!-- <div class="title">歌单</div> -->
         <div class="music-list-content">
           <div class="playlist-section">
             <div class="section-header">
@@ -484,6 +491,9 @@
                 </button>
                 <button id="importPlaylist" class="import-btn">
                   <i class="bi bi-save"></i>
+                </button>
+                <button id="autoUpdateBtn" class="import-btn" title="检查更新">
+                  <i class="bi bi-arrow-repeat"></i>
                 </button>
               </div>
             </div>
@@ -522,7 +532,7 @@
         </list>
       </div>
       <div class="setting hide">
-        <div class="title">设置</div>
+        <!-- <div class="title">设置</div> -->
         <div class="setting-content">
           <div class="setting-group">
             <!-- 关于卡片 -->
@@ -969,7 +979,6 @@
                 <button id="clearCache" class="cache-clear-btn">清除缓存</button>
               </div>
             </div>
-
           </div>
 
           <!-- 高级设置 -->

@@ -48,6 +48,17 @@ class EffectManager {
         effectdialog.addEventListener("mousedown", () => {
             effectdialog.classList.add("hide");
         });
+        // 添加重置按钮事件监听
+        effectdialogcontent.querySelector('.reset-btn').addEventListener('click', () => {
+            this.frequencies.forEach(freq => {
+                this.adjustFrequency(freq, 0);
+                const slider = effectdialogcontent.querySelector(`.equalizer-item>.slider[data-adjust="${freq}"]`);
+                if (slider) {
+                    slider.value = 0;
+                }
+            });
+        });
+
         if (this.settingManager.getSetting("echo") == "true") {
             effectdialogcontent.querySelector('a.echo[data-value="true"]').classList.add("active");
         } else {

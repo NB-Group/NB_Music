@@ -512,9 +512,9 @@ function createWindow() {
                 throw new Error("未能获取到cookie");
             }
 
-            saveCookies(cookies.join(";"));
+            saveCookies(cookies.join(";") + ';nbmusic_loginmode=qrcode');
 
-            setBilibiliRequestCookie(cookies.join(";"));
+            setBilibiliRequestCookie(cookies.join(";") + ';nbmusic_loginmode=qrcode');
 
             win.webContents.send("cookies-set", true);
         } catch (error) {

@@ -514,29 +514,27 @@ class LoginManager {
         const loginMode = this.getCookie("nbmusic_loginmode");
 
         if (loginMode === "qrcode") {
-            this.getCookie("bili_jct").then((biliJct) => {
-                axios
-                    .post("https://passport.bilibili.com/login/exit/v2", "biliCSRF=" + biliJct, { headers: { "Content-Type": "application/x-www-form-urlencoded" } })
-                    .then((response) => {
-                        if (response.data.code !== 0) {
-                            console.error("退出登录失败:", response.data.message);
-                            this.uiManager.showNotification("退出登录失败", "error");
-                            return;
-                        }
-
-                        ipcRenderer.send("logout");
-                    })
-                    .catch((error) => {
-                        if (error.response) {
-                            console.error("退出登录失败：", error.response.data.message);
-                        } else if (error.request) {
-                            console.error("退出登录失败：服务器没有响应");
-                        } else {
-                            console.error("退出登录失败：", error.message);
-                        }
+            axios
+                .post("https://passport.bilibili.com/login/exit/v2", "biliCSRF=" + this.getCookie("bili_jct"), { headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+                .then((response) => {
+                    if (response.data.code !== 0) {
+                        console.error("退出登录失败:", response.data.message);
                         this.uiManager.showNotification("退出登录失败", "error");
-                    });
-            });
+                        return;
+                    }
+
+                    ipcRenderer.send("logout");
+                })
+                .catch((error) => {
+                    if (error.response) {
+                        console.error("退出登录失败：", error.response.data.message);
+                    } else if (error.request) {
+                        console.error("退出登录失败：服务器没有响应");
+                    } else {
+                        console.error("退出登录失败：", error.message);
+                    }
+                    this.uiManager.showNotification("退出登录失败", "error");
+                });
         } else {
             ipcRenderer.send("logout");
         }

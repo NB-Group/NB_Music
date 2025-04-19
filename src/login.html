@@ -38,6 +38,11 @@
             min-height: 100vh;
             display: flex;
             overflow-x: hidden;
+            /* 禁用复制 */
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
         }
         
         .login-container {
@@ -467,6 +472,12 @@
         const userInfo = document.getElementById('userInfo');
         const loginButton = document.getElementById('loginButton');
 
+        // 禁用右键菜单
+        document.oncontextmenu = (event) => {
+            event.preventDefault();
+        };
+
+        // 获取用户信息
         fetch('/getUserInfo').then(res => res.json()).then(data => {
             if (data.data.isLogin) {
                 avatar.src = data.data.avatar;

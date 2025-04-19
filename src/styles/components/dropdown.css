@@ -1,7 +1,7 @@
 .custom-select {
     position: relative;
     display: inline-block;
-    min-width: 150px;
+    min-width: 32%;
     border-radius: 8px;
     font-size: 14px;
     cursor: pointer;

@@ -59,6 +59,16 @@ class FavoriteManager {
         const removeIndex = this.lovelist.findIndex((item) => item.title === song.title);
         if (removeIndex !== -1) {
             this.lovelist.splice(removeIndex, 1);
+            
+            // 修改后的清空检测逻辑
+            if (this.lovelist.length === 0) {
+                const listElement = document.querySelector("#lovelist");
+                listElement.innerHTML = '<div class="empty-state fadein">' + 
+                    '<i class="bi bi-music-note-beamed"></i>' +
+                    '<p>还没有收藏的音乐哦</p>' +
+                    '<span class="tip">小贴士：在播放界面点击❤️图标即可收藏歌曲</span>' +
+                    '</div>';
+            }
         }
 
         // 更新UI

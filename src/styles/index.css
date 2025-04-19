@@ -5,18 +5,18 @@
 @import './base.css';
 
 /* 导入组件样式 */
-@import './components/titlebar.css';
-@import './components/sidebar.css';
-@import './components/player.css';
-@import './components/lyrics.css';
-@import './components/musiclist.css';
-@import './components/settings.css';
-@import './components/dialogs.css';
-@import './components/controls.css';
-@import './components/notifications.css';
-@import './components/dropdown.css';
+@import './components/titlebar.css'; /* 导入标题栏样式 */
+@import './components/sidebar.css'; /* 导入侧边栏样式 */
+@import './components/player.css'; /* 导入播放器样式 */
+@import './components/lyrics.css'; /* 导入歌词样式 */
+@import './components/musiclist.css'; /* 导入音乐列表样式 */
+@import './components/settings.css'; /* 导入设置样式 */
+@import './components/dialogs.css'; /* 导入对话框样式 */
+@import './components/controls.css'; /* 导入控制样式 */
+@import './components/notifications.css'; /* 导入通知样式 */
+@import './components/dropdown.css'; /* 导入下拉菜单样式 */
 @import './components/videoplayer.css';   /* 添加视频播放器样式 */
-@import './components/effectmanager.css';
+@import './components/effectmanager.css'; /* 特效管理器样式 */
 @import './components/localimport.css';   /* 本地导入样式 */
 @import './components/playerstates.css';  /* 播放器状态样式 */
 @import './components/login.css';  /* 登录界面样式 */

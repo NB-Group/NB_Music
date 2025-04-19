@@ -247,7 +247,7 @@ class SettingManager {
 
         this.sliderSetting(
             "lyricLineFontSize",
-            "24px",
+            "24",
             "歌词字体大小已重置",
             (value) => `${value}px`,
             () => this.applyFontSize()
