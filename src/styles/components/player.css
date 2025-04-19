@@ -356,22 +356,3 @@
     opacity: 1;
   }
 }
-
-/* 进度条加载状态 */
-.progress-bar-inner.loading {
-  background: linear-gradient(90deg, 
-    rgba(var(--theme-1-rgb), 0.7), 
-    rgba(var(--theme-2-rgb), 0.7), 
-    rgba(var(--theme-1-rgb), 0.7));
-  background-size: 200% 100%;
-  animation: loading 1.5s linear infinite;
-}
-
-@keyframes loading {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}

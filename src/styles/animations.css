@@ -166,12 +166,6 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* ----- 进度条动画 ----- */
-@keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
 @keyframes progress {
     0% { width: 0; }
     100% { width: 100%; }

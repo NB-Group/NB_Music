@@ -35,24 +35,6 @@
     cursor: not-allowed;
 }
 
-/* 加载内容中状态 */
-.progress-bar-inner.loading {
-    background: linear-gradient(90deg, 
-        rgba(var(--theme-1-rgb), 0.5) 0%, 
-        rgba(var(--theme-1-rgb), 1) 50%, 
-        rgba(var(--theme-1-rgb), 0.5) 100%);
-    background-size: 200% 100%;
-    animation: loading-animation 1.5s ease infinite;
-}
-
-@keyframes loading-animation {
-    0% {
-        background-position: 100% 0;
-    }
-    100% {
-        background-position: -100% 0;
-    }
-}
 
 /* 视频按钮状态 */
 .play-video-btn.disabled {
