@@ -408,7 +408,6 @@ function createWindow() {
 
     setupAutoUpdater(win);
     win.loadFile("src/main.html");
-    win.maximize();
 
     if (!app.isPackaged) {
         win.webContents.openDevTools();
