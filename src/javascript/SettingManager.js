@@ -40,7 +40,9 @@ class SettingManager {
         restoreWindowState: true, // 记忆窗口状态，默认启用
         sidebarWidth: 260, // 侧栏宽度设置
         echo: false, // 回声效果设置
-        convolver: false // 混响效果设置
+        convolver: false, // 混响效果设置
+
+        bilibiliCookies: "" // B站Cookies设置
     };
 
     constructor() {
@@ -177,6 +179,8 @@ class SettingManager {
             // 字体
             case "fontFamilyCustom":
             case "fontFamilyFallback":
+                return value.trim();
+            case "bilibiliCookies":
                 return value.trim();
             // 其他不变
             default:
@@ -352,7 +356,28 @@ class SettingManager {
                 // 将设置同步到主进程
                 ipcRenderer.send("set-restore-window-state", value === "true");
                 break;
+            case "bilibiliCookies":
+                // 处理B站Cookies设置变更
+                this.applyBilibiliCookies(value);
+                break;
             // 其他设置的处理...
+        }
+    }
+
+    // 应用B站Cookies设置
+    applyBilibiliCookies(value) {
+        // 如果Cookies为空，则使用默认的登录方式
+        if (!value || value.trim() === "") {
+            // 发送消息到主进程，使用默认的Cookies获取方式
+            ipcRenderer.send("use-default-cookies");
+        } else {
+            // 设置自定义Cookies
+            ipcRenderer.send("set-custom-cookies", value);
+        }
+    
+        // 显示通知
+        if (this.uiManager) {
+            this.uiManager.showNotification(value ? "B站Cookies已更新" : "已恢复默认登录方式", "success");
         }
     }
 

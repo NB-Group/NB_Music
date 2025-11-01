@@ -8,6 +8,9 @@ const axios = require("axios");
 const fs = require("fs");
 const https = require("https");
 
+// 添加自定义Cookies变量
+let customBilibiliCookies = null;
+
 let browserAuthServer = null;
 
 // 窗口状态存储键名
@@ -163,6 +166,10 @@ function saveCookies(cookieString) {
 }
 
 async function getBilibiliCookies(skipLocalCookies = false) {
+    // 如果有自定义Cookies，优先使用
+    if (customBilibiliCookies) {
+        return customBilibiliCookies;
+    }
     if (!skipLocalCookies) {
         const cachedCookies = loadCookies();
         if (cachedCookies) {
@@ -834,6 +841,22 @@ function setupIPC() {
 
     ipcMain.handle("get-restore-window-state", () => {
         return storage.get("restoreWindowState", true);
+    });
+    // 添加处理自定义Cookies的IPC事件
+    ipcMain.on("set-custom-cookies", (event, cookies) => {
+        customBilibiliCookies = cookies;
+        // 更新请求头中的Cookies
+        setBilibiliRequestCookie(cookies);
+    });
+    
+    // 添加使用默认Cookies的IPC事件
+    ipcMain.on("use-default-cookies", async () => {
+        customBilibiliCookies = null;
+        // 重新获取默认Cookies
+        const cookieString = await getBilibiliCookies();
+        if (cookieString) {
+            setBilibiliRequestCookie(cookieString);
+        }
     });
 }
 
