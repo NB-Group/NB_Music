@@ -45,7 +45,6 @@
         "electron-reload": "^2.0.0-alpha.1",
         "electron-store": "8.2.0",
         "electron-updater": "^6.3.9",
-        "jsmediatags": "^3.9.7",
         "jss": "^10.10.0",
         "jss-preset-default": "^10.10.0",
         "md5": "^2.3.0",
