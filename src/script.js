@@ -222,16 +222,7 @@ class App {
             this.uiManager.showNotification("缓存已清除", "success");
         });
 
-        // 链接点击处理
-        document.getElementById("github-link")?.addEventListener("click", (e) => {
-            e.preventDefault();
-            ipcRenderer.send("open-external-link", "https://github.com/NB-Group/nb-music");
-        });
 
-        document.getElementById("report-bug")?.addEventListener("click", (e) => {
-            e.preventDefault();
-            ipcRenderer.send("open-external-link", "https://github.com/NB-Group/nb-music/issues/new");
-        });
 
         document.getElementById("open-welcome")?.addEventListener("click", (e) => {
             e.preventDefault();
