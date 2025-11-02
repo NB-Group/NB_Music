@@ -1,9 +1,15 @@
 name: Build and Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '输入版本号 (例如 v1.0.1)'
+        required: true
+      changelog:
+        description: '填写更新日志 (支持 Markdown)'
+        required: false
+        type: string
 
 jobs:
   release:
@@ -35,8 +41,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ inputs.version }}
+          release_name: NB Music ${{ inputs.version }}
+          body: ${{ inputs.changelog }}
           draft: false
           prerelease: false
 
