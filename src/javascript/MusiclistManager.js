@@ -1045,7 +1045,7 @@ class MusiclistManager {
 
             // 获取合集信息
             const seasonResponse = await axios.get(
-                `https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100`
+                `https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100000`
             );
 
             if (seasonResponse.data.code !== 0) {
@@ -1247,7 +1247,7 @@ class MusiclistManager {
             const seasonInfo = testResponse.data.data.meta;
 
             // 2. 使用mid获取完整合集信息
-            const seasonResponse = await axios.get(`https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100`);
+            const seasonResponse = await axios.get(`https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${mid}&season_id=${seasonId}&page_num=1&page_size=100000`);
 
             if (seasonResponse.data.code !== 0) {
                 throw new Error("获取合集视频失败: " + seasonResponse.data.message);
