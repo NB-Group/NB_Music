@@ -69,7 +69,7 @@ class MusiclistManager {
                     responseType: "arraybuffer"
                 });
                 const buffer = Buffer.from(response.data); // 进行转换
-                await fs.promises.writeFile(path.join(data.folder, data.name.replace(/[<>:"/\\|?*]+/g, "_") + ".m4s"), buffer);
+                await fs.promises.writeFile(path.join(data.folder, data.name.replace(/[<>:"/\\|?*]+/g, "_") + ".m4a"), buffer);
             } catch {
                 let response = await axios({
                     url: data.link[1][0],
@@ -77,7 +77,7 @@ class MusiclistManager {
                     responseType: "arraybuffer"
                 });
                 const buffer = Buffer.from(response.data); // 进行转换
-                await fs.promises.writeFile(path.join(data.folder, data.name.replace(/[<>:"/\\|?*]+/g, "_") + ".m4s"), buffer);
+                await fs.promises.writeFile(path.join(data.folder, data.name.replace(/[<>:"/\\|?*]+/g, "_") + ".m4a"), buffer);
             } finally {
                 importNotification.querySelector(".notification-message").textContent = `正在下载音乐: ${++i}/${songs.length}`;
                 importNotification.querySelector(".notification-progress-inner").style.width = `${(i / songs.length) * 100}%`;
