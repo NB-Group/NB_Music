@@ -256,7 +256,7 @@ class UIManager {
                 const a = document.createElement("a");
                 // 清理文件名，移除非法字符
                 const fileName = currentSong.title.replace(/[<>:"/\\|?*]+/g, "_");
-                a.download = `${fileName}.mp3`; // 使用 .mp3 扩展名
+                a.download = `${fileName}.m4a`; // 使用 .m4a 扩展名
                 a.href = url;
 
                 // 触发下载
